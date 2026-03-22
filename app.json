@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Fire Alert System",
+    "slug": "fire-alert-system",
+    "scheme": "firealertsystem",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e"
+      }
+    },
+    "web": {},
+    "extra": {
+      "apiBaseUrl": "http://10.0.20.141:4000"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#ff9500"
+        }
+      ]
+    ]
+  }
+}

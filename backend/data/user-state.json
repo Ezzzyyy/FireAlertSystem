@@ -1,0 +1,66 @@
+{
+  "demo@example.com": {
+    "sensors": [
+      {
+        "id": 2,
+        "kind": "fire",
+        "name": "Fire Sensor",
+        "value": 0,
+        "unit": "%",
+        "status": "normal",
+        "module": "IR Fire Module"
+      },
+      {
+        "id": 1,
+        "kind": "smoke",
+        "name": "Smoke Sensor",
+        "value": 1,
+        "unit": "ppm",
+        "status": "normal",
+        "module": "MQ-2/MQ-135"
+      },
+      {
+        "id": 3,
+        "kind": "heat",
+        "name": "Heat Sensor",
+        "value": 22.5,
+        "unit": "°C",
+        "status": "normal",
+        "module": "DHT22"
+      }
+    ],
+    "isArmed": true,
+    "activities": [
+      {
+        "id": 1,
+        "time": "12:25:11 AM",
+        "message": "No alerts. System operating normally.",
+        "type": "normal"
+      }
+    ],
+    "emergencyContacts": [
+      {
+        "id": 1772463802657,
+        "name": "Mama",
+        "phone": "0961-784-6381",
+        "enabled": true,
+        "warningSmsEnabled": true
+      },
+      {
+        "id": 1772598713098,
+        "name": "Fire department",
+        "phone": "0983561284",
+        "enabled": true,
+        "warningSmsEnabled": false
+      }
+    ],
+    "smsSent": 0,
+    "pushSent": 0,
+    "powerMode": "Ultra-Low",
+    "battery": 85,
+    "lastAlertTime": "No alerts",
+    "smsPerAlert": 0,
+    "systemLocation": "WMSU",
+    "updatedAt": "2026-03-04T06:33:31.997Z"
+  }
+}

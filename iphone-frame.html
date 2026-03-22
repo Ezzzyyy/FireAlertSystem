@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fire Alert System - iPhone 14</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+    }
+
+    .iphone-frame {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      background: #000;
+      border-radius: 60px;
+      padding: 14px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      border: 12px solid #1a1a1a;
+    }
+
+    .iphone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 28px;
+      background: #000;
+      border-radius: 0 0 40px 40px;
+      z-index: 10;
+    }
+
+    .iphone-screen {
+      width: 100%;
+      height: 100%;
+      background: #0a0820;
+      border-radius: 52px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .iphone-status-bar {
+      height: 44px;
+      background: #0a0820;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      color: #fff;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .status-left, .status-right {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .app-content {
+      flex: 1;
+      overflow: auto;
+      background: #0a0820;
+      overflow-y: scroll;
+      scrollbar-width: none;
+    }
+
+    .app-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    .iphone-home-indicator {
+      height: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 8px;
+      background: #0a0820;
+      flex-shrink: 0;
+    }
+
+    .home-bar {
+      width: 120px;
+      height: 4px;
+      background: #fff;
+      border-radius: 2px;
+      opacity: 0.3;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #0a0820;
+      scrolling: no;
+    }
+
+    /* Hide scrollbars but keep scrolling functionality */
+    iframe::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="iphone-frame">
+    <div class="iphone-notch"></div>
+    <div class="iphone-screen">
+      <div class="iphone-status-bar">
+        <div class="status-left">
+          <span>9:41</span>
+        </div>
+        <div class="status-right">
+          <span>📶</span>
+          <span>📡</span>
+          <span>🔋</span>
+        </div>
+      </div>
+      <div class="app-content">
+        <iframe src="http://localhost:8082"></iframe>
+      </div>
+      <div class="iphone-home-indicator">
+        <div class="home-bar"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
