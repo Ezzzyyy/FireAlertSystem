@@ -60,7 +60,6 @@ const getDefaultDashboardState = () => ({
 });
 
 const users = {
-  'demo@example.com': { id: 'demo-user', email: 'demo@example.com', name: 'Demo User', password: 'password123' },
 };
 
 const sessions = new Map();

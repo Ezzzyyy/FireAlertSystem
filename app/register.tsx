@@ -20,8 +20,8 @@ const getResponsiveStyles = (width: number) => {
   const isMobile = width < 400;
   return {
     isMobile,
-    titleFontSize: isMobile ? 28 : 32, // Main titles
-    buttonFontSize: isMobile ? 18 : 20, // Button text
+    titleFontSize: isMobile ? 36 : 40, // Main titles
+    buttonFontSize: isMobile ? 24 : 28, // Button text
   };
 };
 
@@ -221,13 +221,13 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   title: {
-    fontSize: 28,
+    fontSize: 40,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 24,
     color: '#aaa',
   },
   form: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 20,
     marginBottom: 6,
     fontWeight: '600',
   },
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: '#fff',
-    fontSize: 16,
+    fontSize: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
@@ -260,22 +260,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+    minWidth: 0,
+    flexShrink: 1,
   },
   passwordInput: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    minWidth: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
   },
   eyeButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    minWidth: 45,
+    paddingHorizontal: 6,
+    paddingVertical: 10,
+    minWidth: 36,
     alignItems: 'center',
+    flexShrink: 0,
   },
   eyeIcon: {
-    fontSize: 12,
+    fontSize: 16,
     color: '#4ecdc4',
     fontWeight: '600',
   },
@@ -288,7 +292,7 @@ const styles = StyleSheet.create({
   },
   registerButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 28,
     fontWeight: 'bold',
   },
   buttonDisabled: {
@@ -302,11 +306,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     color: '#aaa',
-    fontSize: 14,
+    fontSize: 20,
   },
   loginLink: {
     color: '#ff6b6b',
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   infoBox: {
@@ -320,14 +324,14 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     color: '#4ecdc4',
-    fontSize: 12,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 6,
   },
   infoText: {
     color: '#ccc',
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 16,
+    lineHeight: 22,
   },
   notification: {
     paddingHorizontal: 16,
@@ -345,7 +349,7 @@ const styles = StyleSheet.create({
   },
   notificationText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '600',
   },
 });

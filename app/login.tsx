@@ -18,12 +18,12 @@ import { useAuthStore } from '../store/useAuthStore';
 // Responsive helper
 const getResponsiveStyles = (width: number) => {
   const isMobile = width < 400;
-  return {
-    isMobile,
-    titleFontSize: isMobile ? 28 : 32, // Main titles
-    buttonFontSize: isMobile ? 18 : 20, // Button text
-    inputPadding: isMobile ? 14 : 16,
-  };
+    return {
+      isMobile,
+      titleFontSize: isMobile ? 36 : 40, // Main titles
+      buttonFontSize: isMobile ? 24 : 28, // Button text
+      inputPadding: isMobile ? 18 : 22,
+    };
 };
 
 export default function LoginPage() {
@@ -31,8 +31,8 @@ export default function LoginPage() {
   const { login, isLoading } = useAuthStore();
   const { width } = useWindowDimensions();
   const responsive = getResponsiveStyles(width);
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -70,7 +70,7 @@ export default function LoginPage() {
           {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { fontSize: responsive.titleFontSize }]}>Fire Alert System</Text>
-            <Text style={styles.subtitle}>Shared Account Login</Text>
+              <Text style={styles.subtitle}>Shared Account Login</Text>
           </View>
 
           {/* Form */}
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: '#fff',
-    fontSize: 16,
+    fontSize: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
@@ -196,19 +196,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+    minWidth: 0,
+    flexShrink: 1,
   },
   passwordInput: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    minWidth: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     color: '#fff',
     fontSize: 18,
   },
   eyeButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    minWidth: 45,
-    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 10,
+    minWidth: 36,
+    flexShrink: 0,
   },
   eyeIcon: {
     fontSize: 16,
@@ -217,14 +220,14 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: '#ff6b6b',
-    borderRadius: 10,
-    paddingVertical: 14,
+    paddingVertical: 18,
     marginTop: 10,
     alignItems: 'center',
+    borderRadius: 10,
   },
   loginButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 28,
     fontWeight: 'bold',
   },
   buttonDisabled: {
@@ -232,17 +235,16 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    marginTop: 30,
     alignItems: 'center',
     gap: 8,
   },
   footerText: {
     color: '#aaa',
-    fontSize: 14,
+    fontSize: 20,
   },
   registerLink: {
     color: '#4ecdc4',
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   demoInfo: {
@@ -281,7 +283,7 @@ const styles = StyleSheet.create({
   },
   notificationText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '600',
   },
 });

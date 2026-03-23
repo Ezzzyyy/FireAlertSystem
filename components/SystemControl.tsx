@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    fontSize: 16,
+    fontSize: 28,
     fontWeight: '600',
     color: colors.textPrimary,
   },
@@ -90,13 +90,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '500',
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   sublabel: {
-    fontSize: 12,
+    fontSize: 18,
     color: colors.textSecondary,
   },
   simulateButton: {
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   simulateButtonText: {
     color: colors.background,
-    fontSize: 14,
+    fontSize: 24,
     fontWeight: '600',
   },
   resetButton: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   resetButtonText: {
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: 24,
     fontWeight: '500',
   },
   statsContainer: {
@@ -136,11 +136,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   statLabel: {
-    fontSize: 13,
+    fontSize: 18,
     color: colors.textSecondary,
   },
   statValue: {
-    fontSize: 13,
+    fontSize: 18,
     fontWeight: '500',
     color: colors.textPrimary,
   },

@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    fontSize: 16,
+    fontSize: 24,
     fontWeight: '600',
     color: colors.textPrimary,
   },
@@ -93,14 +93,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   value: {
-    fontSize: 36,
+    fontSize: 44,
     fontWeight: 'bold',
     color: colors.textPrimary,
     textAlign: 'center',
     marginVertical: spacing.sm,
   },
   unit: {
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '400',
     color: colors.textSecondary,
   },
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     marginVertical: spacing.md,
   },
   temperatureValue: {
-    fontSize: 40,
+    fontSize: 48,
     fontWeight: 'bold',
     color: colors.textPrimary,
   },
@@ -132,11 +132,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   module: {
-    fontSize: 12,
+    fontSize: 18,
     color: colors.textSecondary,
   },
   status: {
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: '600',
   },
 });

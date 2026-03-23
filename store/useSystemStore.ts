@@ -38,6 +38,8 @@ interface SystemState {
   powerMode: 'ultra-low' | 'normal' | 'high-performance';
   uptime: string;
   activities: Activity[];
+  systemLocation: string;
+  setSystemLocation: (location: string) => void;
   setSensors: (sensors: Sensor[]) => void;
   updateSensor: (id: string, value: number) => void;
   toggleArm: () => void;
@@ -59,6 +61,8 @@ export const useSystemStore = create<SystemState>((set) => ({
   activities: [
     { id: '1', time: '12:25:11 AM', message: 'No alerts. System operating normally.' },
   ],
+  systemLocation: 'Your Building',
+  setSystemLocation: (location) => set({ systemLocation: location }),
   setSensors: (sensors) => set({ sensors }),
   updateSensor: (id, value) =>
     set((state) => ({

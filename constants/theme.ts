@@ -31,15 +31,15 @@ export const borderRadius = {
 
 export const typography = {
   h1: {
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
-  h2: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  h3: {
-    fontSize: 18,
+    fontSize: {
+      xs: 16,
+      sm: 18,
+      md: 22,
+      lg: 28,
+      xl: 32,
+      xxl: 40,
+      xxxl: 48,
+    },
     fontWeight: '600',
   },
   body: {

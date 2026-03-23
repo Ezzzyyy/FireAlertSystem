@@ -60,12 +60,12 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.surface,
   },
   title: {
-    fontSize: 16,
+    fontSize: 24,
     fontWeight: '600',
     color: colors.textPrimary,
   },
   time: {
-    fontSize: 12,
+    fontSize: 18,
     color: colors.textSecondary,
   },
   scrollView: {
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: 20,
   },
   activityItem: {
     flexDirection: 'row',
@@ -97,12 +97,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timestamp: {
-    fontSize: 11,
+    fontSize: 16,
     color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
   message: {
-    fontSize: 13,
+    fontSize: 20,
     color: colors.textPrimary,
     lineHeight: 18,
   },

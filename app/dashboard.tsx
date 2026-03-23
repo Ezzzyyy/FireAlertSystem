@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/useAuthStore';
+import { useSystemStore } from '../store/useSystemStore';
 import { API_BASE_URL } from '../constants/api';
 
 // Responsive helper function
@@ -27,12 +28,12 @@ const getResponsiveStyles = (width: number) => {
     isMobile,
     isTablet,
     isLarge,
-    titleFontSize: isMobile ? 26 : isTablet ? 28 : 32, // Main titles
-    sectionTitleFontSize: isMobile ? 20 : isTablet ? 22 : 24, // Section titles
-    sensorValueFontSize: isMobile ? 22 : isTablet ? 24 : 28, // Sensor values
-    buttonPaddingVertical: isMobile ? 14 : 16,
-    gridPadding: isMobile ? 12 : 20,
-    cardPadding: isMobile ? 12 : 16,
+    titleFontSize: isMobile ? 36 : isTablet ? 40 : 44, // Main titles
+    sectionTitleFontSize: isMobile ? 28 : isTablet ? 32 : 36, // Section titles
+    sensorValueFontSize: isMobile ? 44 : isTablet ? 56 : 64, // Sensor values
+    buttonPaddingVertical: isMobile ? 18 : 22,
+    gridPadding: isMobile ? 16 : 28,
+    cardPadding: isMobile ? 18 : 24,
     sensorCardWidth: isMobile ? '100%' : '48%',
   };
 };
@@ -93,6 +94,8 @@ export default function Dashboard() {
   const { user, token, logout } = useAuthStore();
   const { width } = useWindowDimensions();
   const responsive = getResponsiveStyles(width);
+  const systemLocation = useSystemStore(state => state.systemLocation);
+  const setSystemLocation = useSystemStore(state => state.setSystemLocation);
 
   const [sensors, setSensors] = useState<DashboardSensor[]>([
     { id: 2, kind: 'fire', name: 'Fire Sensor', value: 0, unit: '%', status: getSensorStatus('fire', 0), module: 'IR Fire Module' },
@@ -123,9 +126,7 @@ export default function Dashboard() {
   const [smsPerAlert, setSmsPerAlert] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [showContactsInSettings, setShowContactsInSettings] = useState(false);
-  const [systemLocation, setSystemLocation] = useState('Your Building');
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [locationInput, setLocationInput] = useState('');
+  // systemLocation now comes from Zustand store
 
   const glowAnim = useRef(new Animated.Value(0)).current;
   const alarmSoundRef = useRef<Audio.Sound | null>(null);
@@ -486,15 +487,27 @@ export default function Dashboard() {
     };
   }, []);
 
+
+  // Track last loaded user to reset state loaded flag if user changes
+  const lastLoadedUserRef = useRef<string | null>(null);
+
   useEffect(() => {
-    void loadDashboardStateFromBackend();
+    // Only load state if both token and user.email are present
+    if (token && user?.email) {
+      // If user changed, reset state loaded flag
+      if (lastLoadedUserRef.current !== user.email) {
+        isStateLoadedRef.current = false;
+        lastLoadedUserRef.current = user.email;
+      }
+      void loadDashboardStateFromBackend();
+    }
 
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [token]);
+  }, [token, user?.email]);
 
   useEffect(() => {
     if (!token || !isStateLoadedRef.current) {
@@ -915,8 +928,8 @@ export default function Dashboard() {
               <TouchableOpacity
                 style={styles.settingsMenuItem}
                 onPress={() => {
-                  setLocationInput(systemLocation);
-                  setShowLocationModal(true);
+                  setShowSettings(false);
+                  router.push('/location');
                 }}
               >
                 <Text style={styles.settingsMenuItemText}>Location</Text>
@@ -940,52 +953,7 @@ export default function Dashboard() {
           </View>
         )}
 
-        {/* Location Configuration Modal */}
-        {showLocationModal && (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.contactsModalHeader}>
-                <Text style={styles.modalTitle}>Set Location</Text>
-                <TouchableOpacity onPress={() => setShowLocationModal(false)}>
-                  <Text style={styles.modalCloseBtnText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Location / Address</Text>
-                <TextInput
-                  style={[styles.input, { height: 80 }]}
-                  placeholder="e.g., Building A, 123 Main St, Floor 2, Room 201"
-                  placeholderTextColor="#666"
-                  value={locationInput}
-                  onChangeText={setLocationInput}
-                  multiline
-                />
-                <Text style={styles.inputHint}>This location will appear in all SMS alerts</Text>
-              </View>
-
-              <View style={styles.modalButtonGroup}>
-                <TouchableOpacity
-                  style={styles.modalButtonSave}
-                  onPress={() => {
-                    if (locationInput.trim()) {
-                      setSystemLocation(locationInput.trim());
-                    }
-                    setShowLocationModal(false);
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Save Location</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.modalButtonCancel}
-                  onPress={() => setShowLocationModal(false)}
-                >
-                  <Text style={styles.modalButtonCancelText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
+        {/* Location Configuration Modal removed: now handled by /location page */}
       </SafeAreaView>
     </LinearGradient>
   );
@@ -1009,12 +977,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   welcomeText: {
-    fontSize: 16,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
   },
   emailText: {
-    fontSize: 11,
+    fontSize: 18,
     color: '#aaa',
     marginTop: 2,
   },
@@ -1027,7 +995,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   settingsButtonText: {
-    fontSize: 18,
+    fontSize: 28,
     fontWeight: 'bold',
   },
   scroll: {
@@ -1043,13 +1011,13 @@ const styles = StyleSheet.create({
     borderColor: '#ff4444',
   },
   alertTitle: {
-    fontSize: 18,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 4,
   },
   alertMessage: {
-    fontSize: 13,
+    fontSize: 20,
     color: '#ffaaaa',
   },
   header: {
@@ -1060,6 +1028,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 12,
+    flexWrap: 'wrap',
+    maxWidth: 320,
   },
   logoCircle: {
     width: 50,
@@ -1072,15 +1042,19 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(100, 80, 130, 0.6)',
   },
   logoText: {
-    fontSize: 28,
+    fontSize: 44,
   },
   title: {
-    fontSize: 22,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
+    flexShrink: 1,
+    flexWrap: 'wrap',
+    lineHeight: 1.1 * 32,
+    maxWidth: 220,
   },
   subtitle1: {
-    fontSize: 11,
+    fontSize: 18,
     color: '#999',
     marginTop: 2,
   },
@@ -1089,7 +1063,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   subtitle3: {
-    fontSize: 10,
+    fontSize: 16,
     color: 'rgba(100, 80, 130, 0.8)',
     marginTop: 2,
   },
@@ -1109,7 +1083,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   badgeIcon: {
-    fontSize: 12,
+    fontSize: 20,
   },
   badgeText: {
     fontSize: 10,
@@ -1156,7 +1130,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   sensorValue: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -1178,11 +1152,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   moduleText: {
-    fontSize: 9,
+    fontSize: 14,
     color: '#999',
   },
   statusText: {
-    fontSize: 8,
+    fontSize: 14,
     fontWeight: '600',
     color: '#00d084',
   },
@@ -1204,15 +1178,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionIcon: {
-    fontSize: 18,
+    fontSize: 28,
   },
   sectionTitleText: {
-    fontSize: 16,
+    fontSize: 24,
     fontWeight: '600',
     color: '#fff',
   },
   timestamp: {
-    fontSize: 10,
+    fontSize: 16,
     color: '#999',
   },
   alertHistoryBox: {
@@ -1235,7 +1209,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   activityMessage: {
-    fontSize: 13,
+    fontSize: 20,
     color: '#ccc',
   },
   activityAlert: {
@@ -1295,7 +1269,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   armLabel: {
-    fontSize: 14,
+    fontSize: 22,
     fontWeight: '600',
     color: '#fff',
   },
@@ -1375,7 +1349,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 20,
     color: '#999',
   },
   statValue: {
@@ -1575,7 +1549,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   closeBtn: {
-    fontSize: 20,
+    fontSize: 32,
     color: '#ff6b6b',
     fontWeight: 'bold',
   },
