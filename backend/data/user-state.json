@@ -14,7 +14,7 @@
         "id": 1,
         "kind": "smoke",
         "name": "Smoke Sensor",
-        "value": 471,
+        "value": 329,
         "unit": "raw",
         "status": "normal",
         "module": "MQ-2/MQ-135"
@@ -23,7 +23,7 @@
         "id": 3,
         "kind": "heat",
         "name": "Heat Sensor",
-        "value": 32.2,
+        "value": 31.5,
         "unit": "°C",
         "status": "normal",
         "module": "DHT22"
@@ -5070,6 +5070,6 @@
     "lastAlertTime": "4/27/2026 3:55:19 PM",
     "smsPerAlert": 1,
     "systemLocation": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
-    "updatedAt": "2026-04-27T07:58:03.695Z"
+    "updatedAt": "2026-04-27T09:59:35.011Z"
   }
 }

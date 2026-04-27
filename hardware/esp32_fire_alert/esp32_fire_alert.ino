@@ -8,7 +8,7 @@ const char* WIFI_SSID = "TECNO CAMON 30S";
 const char* WIFI_PASSWORD = "ayawpagkonek";
 
 // Use your computer LAN IP here, same machine running backend server.
-const char* API_URL = "http://10.33.72.50:4000/hardware/telemetry";
+const char* API_URL = "https://firealertsystem-dcxc.onrender.com/hardware/telemetry";
 const char* DEVICE_KEY = "dev-device-key";
 
 // -------- Pin wiring (edit to your build) --------
