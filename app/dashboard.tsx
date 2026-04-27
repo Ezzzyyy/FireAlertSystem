@@ -2,20 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Switch,
   Animated,
   TextInput,
   useWindowDimensions,
+  StyleSheet,
+  SafeAreaView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../store/useAuthStore';
-import { useSystemStore } from '../store/useSystemStore';
+import { useSystemStore, loadPersistedState } from '../store/useSystemStore';
 import { API_BASE_URL } from '../constants/api';
 
 // Responsive helper function
@@ -35,6 +36,32 @@ const getResponsiveStyles = (width: number) => {
     gridPadding: isMobile ? 16 : 28,
     cardPadding: isMobile ? 18 : 24,
     sensorCardWidth: isMobile ? '100%' : '48%',
+    // Additional responsive styles for mobile
+    activityTimeFontSize: isMobile ? 11 : 13,
+    activityMessageFontSize: isMobile ? 15 : 17,
+    activityInfoFontSize: isMobile ? 12 : 14,
+    activityPadding: isMobile ? 14 : 18,
+    activityMarginBottom: isMobile ? 14 : 18,
+    locationFontSize: isMobile ? 10 : 12,
+    notificationFontSize: isMobile ? 10 : 12,
+    // Alert history responsive styles
+    alertTableLabelFontSize: isMobile ? 9 : 10,
+    alertTableValueFontSize: isMobile ? 11 : 12,
+    alertTableColumnMinWidth: isMobile ? 60 : 80,
+    alertTableRowGap: isMobile ? 6 : 8,
+    triggeredSensorNameFontSize: isMobile ? 10 : 11,
+    triggeredSensorLevelFontSize: isMobile ? 9 : 10,
+    alertBadgeFontSize: isMobile ? 9 : 10,
+    // Sensor card responsive styles
+    sensorNameFontSize: isMobile ? 11 : 12,
+    sensorUnitFontSize: isMobile ? 14 : 16,
+    moduleTextFontSize: isMobile ? 10 : 11,
+    statusTextFontSize: isMobile ? 10 : 11,
+    // Alert history sensor boxes responsive styles
+    triggeredSensorsGap: isMobile ? 4 : 8,
+    triggeredSensorBoxPaddingHorizontal: isMobile ? 6 : 10,
+    triggeredSensorBoxPaddingVertical: isMobile ? 4 : 6,
+    triggeredSensorBoxGap: isMobile ? 4 : 6,
   };
 };
 
@@ -52,9 +79,9 @@ interface DashboardSensor {
 }
 
 const SENSOR_THRESHOLDS: Record<SensorKind, { warning: number; critical: number }> = {
-  fire: { warning: 25, critical: 60 },
-  smoke: { warning: 40, critical: 80 },
-  heat: { warning: 35, critical: 50 },
+  fire: { warning: 65, critical: 85 },
+  smoke: { warning: 1200, critical: 1600 },
+  heat: { warning: 38, critical: 55 },
 };
 
 const getSensorStatus = (kind: SensorKind, value: number): SensorStatus => {
@@ -66,6 +93,40 @@ const getSensorStatus = (kind: SensorKind, value: number): SensorStatus => {
     return 'warning';
   }
   return 'normal';
+};
+
+// Hardware-like multi-sensor detection logic - Updated per user requirements
+const getAlertLevel = (sensors: DashboardSensor[]): 'critical' | 'warning' | 'normal' => {
+  const fireSensor = sensors.find(s => s.kind === 'fire');
+  const smokeSensor = sensors.find(s => s.kind === 'smoke');
+  const heatSensor = sensors.find(s => s.kind === 'heat');
+
+  const flameDetected = fireSensor?.value !== undefined && fireSensor.value > 0;
+  const smokeRaw = smokeSensor?.value || 0;
+  const tempC = heatSensor?.value || 0;
+
+  // CRITICAL: Fire CRITICAL alone (after 3s validation on hardware)
+  if (flameDetected) {
+    return 'critical'; // Fire CRITICAL alone triggers buzzer + LED
+  }
+  // CRITICAL: Both heat AND smoke critical
+  else if (smokeRaw >= SENSOR_THRESHOLDS.smoke.critical && tempC >= SENSOR_THRESHOLDS.heat.critical) {
+    return 'critical'; // Both heat AND smoke critical triggers buzzer + LED
+  }
+  // WARNING: One sensor warning (heat OR smoke at warning level, not critical)
+  else if ((smokeRaw >= SENSOR_THRESHOLDS.smoke.warning && smokeRaw < SENSOR_THRESHOLDS.smoke.critical) || 
+           (tempC >= SENSOR_THRESHOLDS.heat.warning && tempC < SENSOR_THRESHOLDS.heat.critical)) {
+    return 'warning'; // One sensor warning triggers WARNING (LED only)
+  }
+  // WARNING: One sensor warning and one critical (heat warning + smoke critical OR smoke warning + heat critical)
+  else if ((smokeRaw >= SENSOR_THRESHOLDS.smoke.warning && tempC >= SENSOR_THRESHOLDS.heat.warning) && 
+           !(smokeRaw >= SENSOR_THRESHOLDS.smoke.critical && tempC >= SENSOR_THRESHOLDS.heat.critical)) {
+    return 'warning'; // Mixed warning/critical triggers WARNING (LED only)
+  }
+  // Normal: All other cases
+  else {
+    return 'normal';
+  }
 };
 
 const generateSMSMessage = (sensor: DashboardSensor, status: 'warning' | 'critical', location: string): string => {
@@ -86,16 +147,16 @@ const generateSMSMessage = (sensor: DashboardSensor, status: 'warning' | 'critic
 const createUniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const ALARM_SOURCES = [
   require('../assets/alarm.wav'),
-  require('../assets/buzzer.mp3'),
 ];
 
 export default function Dashboard() {
   const router = useRouter();
-  const { user, token, logout } = useAuthStore();
+  const { user, token, logout, checkAuth } = useAuthStore();
   const { width } = useWindowDimensions();
   const responsive = getResponsiveStyles(width);
   const systemLocation = useSystemStore(state => state.systemLocation);
   const setSystemLocation = useSystemStore(state => state.setSystemLocation);
+  const setUserId = useSystemStore(state => state.setUserId);
 
   const [sensors, setSensors] = useState<DashboardSensor[]>([
     { id: 2, kind: 'fire', name: 'Fire Sensor', value: 0, unit: '%', status: getSensorStatus('fire', 0), module: 'IR Fire Module' },
@@ -103,16 +164,74 @@ export default function Dashboard() {
     { id: 3, kind: 'heat', name: 'Heat Sensor', value: 22.5, unit: '°C', status: getSensorStatus('heat', 22.5), module: 'DHT22' },
   ]);
 
+  // Check auth on mount to restore user session
+  useEffect(() => {
+    console.log('[Dashboard] Checking auth on mount...');
+    checkAuth();
+  }, [checkAuth]);
+
+  // Fetch live sensor data from backend
+  useEffect(() => {
+    const fetchSensorData = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/hardware/latest`);
+        const data = await response.json();
+        if (data.success && data.telemetry) {
+          const { fire, smoke, heat } = data.telemetry;
+
+          // Always update sensors to show live data
+          setSensors([
+            { id: 2, kind: 'fire', name: 'Fire Sensor', value: fire, unit: '%', status: getSensorStatus('fire', fire), module: 'IR Fire Module' },
+            { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: smoke, unit: 'ppm', status: getSensorStatus('smoke', smoke), module: 'MQ-2/MQ-135' },
+            { id: 3, kind: 'heat', name: 'Heat Sensor', value: heat, unit: '°C', status: getSensorStatus('heat', heat), module: 'DHT22' },
+          ]);
+
+          // Check if all sensors are normal
+          const fireStatus = getSensorStatus('fire', fire);
+          const smokeStatus = getSensorStatus('smoke', smoke);
+          const heatStatus = getSensorStatus('heat', heat);
+          const allNormal = fireStatus === 'normal' && smokeStatus === 'normal' && heatStatus === 'normal';
+
+          console.log('[Sensor Poll] fireStatus:', fireStatus, 'smokeStatus:', smokeStatus, 'heatStatus:', heatStatus, 'allNormal:', allNormal, 'isAlertActive:', isAlertActive);
+
+          // Stop buzzer and clear alert card when all sensors return to normal
+          if (allNormal) {
+            console.log('[Sensor Poll] All sensors normal, stopping buzzer and clearing alert');
+            setIsAlertActive(false);
+            void stopAlarmSound();
+          }
+
+          // Always clear processed alerts when sensors return to normal (allow re-triggering)
+          if (allNormal && processedSensorsRef.current.size > 0) {
+            console.log('[Sensor Poll] All sensors normal, clearing processed alerts');
+            processedSensorsRef.current.clear();
+          }
+
+          // If alert was manually stopped, clear the flag when all sensors return to normal
+          if (alertManuallyStoppedRef.current && allNormal) {
+            alertManuallyStoppedRef.current = false;
+            console.log('[Sensor Poll] All sensors normal, cleared manual stop flag');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch sensor data:', error);
+      }
+    };
+
+    // Fetch immediately
+    fetchSensorData();
+
+    // Poll every 3 seconds
+    const interval = setInterval(fetchSensorData, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const [isArmed, setIsArmed] = useState(true);
   const [isAlertActive, setIsAlertActive] = useState(false);
-  const [activities, setActivities] = useState<any[]>([
-    { id: 1, time: '12:25:11 AM', message: 'No alerts. System operating normally.', type: 'normal' }
-  ]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [showFullHistory, setShowFullHistory] = useState(false);
-  const [emergencyContacts, setEmergencyContacts] = useState([
-    { id: 1, name: 'Emergency Services', phone: '+1-911-000-0000', enabled: true, warningSmsEnabled: false },
-    { id: 2, name: 'Fire Department', phone: '+1-800-555-0000', enabled: true, warningSmsEnabled: true },
-  ]);
+  const [emergencyContacts, setEmergencyContacts] = useState([]);
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactInput, setContactInput] = useState({ name: '', phone: '' });
   const [editingId, setEditingId] = useState(null);
@@ -120,8 +239,6 @@ export default function Dashboard() {
   const [smsSent, setSmsSent] = useState(0);
   const [pushSent, setPushSent] = useState(0);
   const [uptime, setUptime] = useState('72h+');
-  const [powerMode, setPowerMode] = useState('Ultra-Low');
-  const [battery, setBattery] = useState(85);
   const [lastAlertTime, setLastAlertTime] = useState('No alerts');
   const [smsPerAlert, setSmsPerAlert] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
@@ -133,12 +250,15 @@ export default function Dashboard() {
   const processedSensorsRef = useRef<Set<string>>(new Set());
   const isStateLoadedRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const alertManuallyStoppedRef = useRef(false);
 
   const startAlarmSound = async () => {
     if (alarmSoundRef.current) {
+      console.log('[Alarm] Alarm already playing');
       return;
     }
 
+    console.log('[Alarm] Starting alarm sound...');
     try {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
@@ -147,9 +267,11 @@ export default function Dashboard() {
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
       });
+      console.log('[Alarm] Audio mode set');
 
       for (const source of ALARM_SOURCES) {
         try {
+          console.log('[Alarm] Trying to load sound from source:', source);
           const { sound } = await Audio.Sound.createAsync(
             source,
             {
@@ -158,18 +280,21 @@ export default function Dashboard() {
               volume: 1.0,
             }
           );
+          console.log('[Alarm] Sound loaded successfully');
 
           await sound.playAsync();
+          console.log('[Alarm] Sound playing');
           alarmSoundRef.current = sound;
           return;
-        } catch {
+        } catch (error) {
+          console.log('[Alarm] Failed to play sound from source:', error);
           continue;
         }
       }
 
       throw new Error('No playable alarm source found.');
     } catch (error) {
-      console.log('Alarm sound unavailable:', error);
+      console.error('[Alarm] Alarm sound unavailable:', error);
     }
   };
 
@@ -195,8 +320,6 @@ export default function Dashboard() {
     emergencyContacts,
     smsSent,
     pushSent,
-    powerMode,
-    battery,
     lastAlertTime,
     smsPerAlert,
     systemLocation,
@@ -205,12 +328,11 @@ export default function Dashboard() {
   const applyPersistedDashboardState = (state: any) => {
     if (Array.isArray(state?.sensors)) setSensors(state.sensors);
     if (typeof state?.isArmed === 'boolean') setIsArmed(state.isArmed);
-    if (Array.isArray(state?.activities)) setActivities(state.activities);
+    // NEVER overwrite activities from backend - AsyncStorage is the source of truth
+    console.log('[Apply State] Skipping activities from backend to preserve AsyncStorage data');
     if (Array.isArray(state?.emergencyContacts)) setEmergencyContacts(state.emergencyContacts);
     if (typeof state?.smsSent === 'number') setSmsSent(state.smsSent);
     if (typeof state?.pushSent === 'number') setPushSent(state.pushSent);
-    if (typeof state?.powerMode === 'string') setPowerMode(state.powerMode);
-    if (typeof state?.battery === 'number') setBattery(state.battery);
     if (typeof state?.lastAlertTime === 'string') setLastAlertTime(state.lastAlertTime);
     if (typeof state?.smsPerAlert === 'number') setSmsPerAlert(state.smsPerAlert);
     if (typeof state?.systemLocation === 'string') setSystemLocation(state.systemLocation);
@@ -218,20 +340,28 @@ export default function Dashboard() {
 
   const saveDashboardStateToBackend = async (stateOverride?: any) => {
     if (!token) {
+      console.log('[Backend Save] No token, skipping save');
       return;
     }
 
     try {
-      await fetch(`${API_BASE_URL}/state`, {
+      const stateToSave = stateOverride || getPersistedDashboardState();
+      console.log('[Backend Save] Saving state to backend:', stateToSave);
+      console.log('[Backend Save] Activities count:', stateToSave.activities?.length);
+      const response = await fetch(`${API_BASE_URL}/state`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ state: stateOverride || getPersistedDashboardState() }),
+        body: JSON.stringify({ state: stateToSave }),
       });
-    } catch {
-      // Intentionally ignore temporary connectivity issues.
+      console.log('[Backend Save] Response status:', response.status);
+      if (!response.ok) {
+        console.error('[Backend Save] Failed to save, response:', await response.text());
+      }
+    } catch (error) {
+      console.error('[Backend Save] Failed to save to backend:', error);
     }
   };
 
@@ -242,6 +372,7 @@ export default function Dashboard() {
     }
 
     try {
+      console.log('[Backend Load] Loading state from backend...');
       const response = await fetch(`${API_BASE_URL}/state`, {
         method: 'GET',
         headers: {
@@ -251,10 +382,14 @@ export default function Dashboard() {
 
       if (response.ok) {
         const payload = await response.json();
+        console.log('[Backend Load] Loaded state from backend:', payload.state);
+        console.log('[Backend Load] Backend activities count:', payload.state?.activities?.length);
         applyPersistedDashboardState(payload.state);
+      } else {
+        console.log('[Backend Load] Failed to load, response status:', response.status);
       }
-    } catch {
-      // Ignore load failures and keep current local defaults.
+    } catch (error) {
+      console.error('[Backend Load] Failed to load from backend:', error);
     } finally {
       isStateLoadedRef.current = true;
     }
@@ -266,76 +401,22 @@ export default function Dashboard() {
     router.replace('/login');
   };
 
-  const handleSimulate = async () => {
-    setIsAlertActive(true);
-    const timestamp = new Date().toLocaleTimeString();
-    setLastAlertTime(timestamp);
-
-    await startAlarmSound();
-
-    const enabledContacts = emergencyContacts.filter(contact => contact.enabled);
-    
-    setSensors([
-      { id: 2, kind: 'fire', name: 'Fire Sensor', value: 95, unit: '%', status: getSensorStatus('fire', 95), module: 'IR Fire Module' },
-      { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: 450, unit: 'ppm', status: getSensorStatus('smoke', 450), module: 'MQ-2/MQ-135' },
-      { id: 3, kind: 'heat', name: 'Heat Sensor', value: 75.2, unit: '°C', status: getSensorStatus('heat', 75.2), module: 'DHT22' },
-    ]);
-
-    const newNotifications = [
-      { time: timestamp, type: 'local', message: 'Local LED + Buzzer activated' },
-      ...enabledContacts.map(contact => ({
-        time: timestamp,
-        type: 'sms',
-        message: `SMS sent to ${contact.name}`,
-      })),
-      { time: timestamp, type: 'push', message: 'Push notification sent via Firebase' },
-    ];
-
-    // Count SMS in this alert
-    const smsCount = newNotifications.filter(n => n.type === 'sms').length;
-    setSmsPerAlert(smsCount);
-
-    setActivities([
-      {
-        id: createUniqueId(),
-        time: timestamp,
-        message: '🚨 FIRE ALERT TRIGGERED',
-        type: 'alert',
-        notifications: newNotifications,
-      },
-      ...activities,
-    ]);
-
-    setSmsSent(prev => prev + enabledContacts.length);
-    setPushSent(prev => prev + 1);
-  };
-
   const handleReset = () => {
-    setIsAlertActive(false);
-    processedSensorsRef.current.clear();
-    void stopAlarmSound();
-    setSensors([
-      { id: 2, kind: 'fire', name: 'Fire Sensor', value: 0, unit: '%', status: getSensorStatus('fire', 0), module: 'IR Fire Module' },
-      { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: 1, unit: 'ppm', status: getSensorStatus('smoke', 1), module: 'MQ-2/MQ-135' },
-      { id: 3, kind: 'heat', name: 'Heat Sensor', value: 22.5, unit: '°C', status: getSensorStatus('heat', 22.5), module: 'DHT22' },
-    ]);
+    setActivities([]);
     setSmsSent(0);
     setPushSent(0);
     setSmsPerAlert(0);
     setLastAlertTime('No alerts');
-    setActivities([{ id: 1, time: '12:25:11 AM', message: 'No alerts. System operating normally.', type: 'normal' }]);
+    processedSensorsRef.current.clear();
   };
 
   const handleStopAlert = () => {
+    console.log('[Stop Alert] Stopping alert');
     setIsAlertActive(false);
-    processedSensorsRef.current.clear();
+    alertManuallyStoppedRef.current = true; // Flag to prevent alarm re-triggering until sensors return to normal
+    processedSensorsRef.current.clear(); // Clear to allow re-triggering after sensors return to normal
     void stopAlarmSound();
-    // Reset sensors to normal state
-    setSensors([
-      { id: 2, kind: 'fire', name: 'Fire Sensor', value: 0, unit: '%', status: getSensorStatus('fire', 0), module: 'IR Fire Module' },
-      { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: 1, unit: 'ppm', status: getSensorStatus('smoke', 1), module: 'MQ-2/MQ-135' },
-      { id: 3, kind: 'heat', name: 'Heat Sensor', value: 22.5, unit: '°C', status: getSensorStatus('heat', 22.5), module: 'DHT22' },
-    ]);
+    console.log('[Stop Alert] Alert stopped, isAlertActive:', false);
   };
 
   const handleAddContact = () => {
@@ -366,83 +447,125 @@ export default function Dashboard() {
     );
   };
 
-  // WARNING: Send SMS only to selected contacts
+  // WARNING: Send SMS only to selected contacts using multi-sensor detection logic
   useEffect(() => {
     if (!isArmed) {
       return;
     }
 
+    const alertLevel = getAlertLevel(sensors);
     const warningSensors = sensors.filter(sensor => sensor.status === 'warning');
+    const alertKey = `warning-${warningSensors.map(s => s.kind).sort().join('-')}`;
     
-    warningSensors.forEach(sensor => {
-      const sensorKey = `${sensor.id}-warning`;
-      if (processedSensorsRef.current.has(sensorKey)) {
-        return;
-      }
-      
-      processedSensorsRef.current.add(sensorKey);
+    console.log('[Warning Alert] Alert level:', alertLevel);
+    console.log('[Warning Alert] Alert key:', alertKey);
+    console.log('[Warning Alert] Processed:', processedSensorsRef.current.has(alertKey));
+    console.log('[Warning Alert] Sensors:', sensors.map(s => ({ name: s.name, status: s.status, value: s.value })));
+    
+    if (alertLevel === 'warning' && !processedSensorsRef.current.has(alertKey)) {
+      processedSensorsRef.current.add(alertKey);
       
       const timestamp = new Date().toLocaleTimeString();
       const warningContacts = emergencyContacts.filter(contact => contact.warningSmsEnabled);
-      const smsMessage = generateSMSMessage(sensor, 'warning', systemLocation);
+      const warningSensors = sensors.filter(sensor => sensor.status === 'warning');
+      const smsMessage = generateSMSMessage(warningSensors[0] || sensors[0], 'warning', systemLocation);
+
+      console.log('[Warning Alert] Adding activity - Warning sensors:', warningSensors);
+
+      const date = new Date().toLocaleDateString();
 
       if (warningContacts.length > 0) {
         setSmsPerAlert(warningContacts.length);
         setSmsSent(prev => prev + warningContacts.length);
-        setActivities(prev => ([
-          {
-            id: createUniqueId(),
+        // Create deep snapshot of all sensor values at time of alert
+        const sensorSnapshot = JSON.parse(JSON.stringify(sensors));
+        setActivities(prev => ([{
+          id: createUniqueId(),
+          time: timestamp,
+          date: date,
+          message: 'WARNING',
+          type: 'alert',
+          sensors: warningSensors.map(s => ({ name: s.name, level: `${s.value}${s.unit}` })),
+          location: systemLocation,
+          notifications: warningContacts.map(contact => ({
             time: timestamp,
-            message: `⚠️ WARNING: ${sensor.name} elevated`,
-            type: 'alert',
-            notifications: warningContacts.map(contact => ({
-              time: timestamp,
-              type: 'sms',
-              message: `SMS to ${contact.name}: ${smsMessage}`,
-            })),
-          },
+            type: 'sms',
+            message: `SMS to ${contact.name}: ${smsMessage}`,
+          })),
+        },
           ...prev,
         ]));
       } else {
-        setActivities(prev => ([
-          {
-            id: createUniqueId(),
-            time: timestamp,
-            message: `⚠️ WARNING: ${sensor.name} elevated (No SMS contacts selected)`,
-            type: 'alert',
-            notifications: [],
-          },
+        setActivities(prev => ([{
+          id: createUniqueId(),
+          time: timestamp,
+          date: date,
+          message: 'WARNING',
+          type: 'alert',
+          sensors: warningSensors.map(s => ({ name: s.name, level: `${s.value}${s.unit}` })),
+          location: systemLocation,
+          notifications: [],
+        },
           ...prev,
         ]));
       }
-    });
-  }, [sensors, isArmed, emergencyContacts]);
+    }
+  }, [sensors, isArmed, emergencyContacts, systemLocation]);
 
-  // CRITICAL: Trigger alarm + SMS
+  // CRITICAL: Trigger alarm + SMS using multi-sensor detection logic
   useEffect(() => {
     if (!isArmed) {
       return;
     }
 
+    const alertLevel = getAlertLevel(sensors);
     const criticalSensors = sensors.filter(sensor => sensor.status === 'critical');
+    const alertKey = `critical-${criticalSensors.map(s => s.kind).sort().join('-')}`;
     
-    criticalSensors.forEach(sensor => {
-      const sensorKey = `${sensor.id}-critical`;
-      if (processedSensorsRef.current.has(sensorKey)) {
-        return;
-      }
+    console.log('[Critical Alert] Alert level:', alertLevel);
+    console.log('[Critical Alert] Alert key:', alertKey);
+    console.log('[Critical Alert] Processed:', processedSensorsRef.current.has(alertKey));
+    console.log('[Critical Alert] Sensors:', sensors.map(s => ({ name: s.name, status: s.status, value: s.value })));
+    
+    if (alertLevel === 'critical' && !processedSensorsRef.current.has(alertKey) && !alertManuallyStoppedRef.current) {
+      processedSensorsRef.current.add(alertKey);
       
-      processedSensorsRef.current.add(sensorKey);
-      
-      const timestamp = new Date().toLocaleTimeString();
       const enabledContacts = emergencyContacts.filter(contact => contact.enabled);
-      const smsMessage = generateSMSMessage(sensor, 'critical', systemLocation);
+      const criticalSensors = sensors.filter(sensor => sensor.status === 'critical');
+      const smsMessage = generateSMSMessage(criticalSensors[0] || sensors[0], 'critical', systemLocation);
+
+      console.log('[Critical Alert] Adding activity - Critical sensors:', criticalSensors);
 
       // Trigger alarm
+      // Only set last alert time when alarm first starts (not for subsequent sensor triggers in same session)
+      const now = new Date();
+      const alertTimestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+      if (!isAlertActive) {
+        setLastAlertTime(alertTimestamp);
+      }
       setIsAlertActive(true);
-      setLastAlertTime(timestamp);
-      
+
       void startAlarmSound();
+
+      // Create deep snapshot of all sensor values at time of alert
+      const allSensorsSnapshot = sensors.map(sensor => ({
+        id: sensor.id,
+        name: sensor.name,
+        value: sensor.value,
+        unit: sensor.unit,
+        status: sensor.status,
+        kind: sensor.kind,
+        module: sensor.module,
+      }));
+
+      // Create snapshot of only critical sensors for the alert message
+      const criticalSensorSnapshot = criticalSensors.map(sensor => ({
+        name: sensor.name,
+        level: `${sensor.value}${sensor.unit}`,
+        status: sensor.status,
+      }));
+
+      const date = new Date().toLocaleDateString();
 
       setSmsPerAlert(enabledContacts.length);
       setSmsSent(prev => prev + enabledContacts.length);
@@ -450,22 +573,26 @@ export default function Dashboard() {
       setActivities(prev => ([
         {
           id: createUniqueId(),
-          time: timestamp,
-          message: `🚨 CRITICAL ALERT: ${sensor.name} - EVACUATE NOW`,
+          time: alertTimestamp,
+          date: date,
+          message: 'CRITICAL',
           type: 'alert',
+          sensors: criticalSensorSnapshot,
+          allSensors: allSensorsSnapshot,
+          location: systemLocation,
           notifications: [
-            { time: timestamp, type: 'local', message: 'Local LED + Buzzer activated' },
+            { time: alertTimestamp, type: 'local', message: 'Local LED + Buzzer activated' },
             ...enabledContacts.map(contact => ({
-              time: timestamp,
+              time: alertTimestamp,
               type: 'sms',
               message: `SMS to ${contact.name}: ${smsMessage}`,
             })),
-            { time: timestamp, type: 'push', message: 'Push notification sent via Firebase' },
+            { time: alertTimestamp, type: 'push', message: 'Push notification sent via Firebase' },
           ],
         },
         ...prev,
       ]));
-    });
+    }
   }, [sensors, isArmed, emergencyContacts]);
 
   useEffect(() => {
@@ -491,6 +618,82 @@ export default function Dashboard() {
   // Track last loaded user to reset state loaded flag if user changes
   const lastLoadedUserRef = useRef<string | null>(null);
 
+  // Set userId when user is logged in and load persisted state
+  useEffect(() => {
+    console.log('[Dashboard Load] useEffect triggered');
+    console.log('[Dashboard Load] user object:', user);
+    console.log('[Dashboard Load] user.id:', user?.id);
+    console.log('[Dashboard Load] user.email:', user?.email);
+    if (user?.id) {
+      setUserId(user.id);
+      void loadPersistedState(user.id);
+
+      // Load dashboard-specific state from AsyncStorage
+      const loadDashboardState = async () => {
+        try {
+          console.log('[Dashboard Load] Loading state for user:', user.id);
+          const savedState = await AsyncStorage.getItem(`dashboard-${user.id}`);
+          console.log('[Dashboard Load] Saved state:', savedState);
+
+          if (savedState) {
+            const parsed = JSON.parse(savedState);
+            console.log('[Dashboard Load] Parsed state:', parsed);
+            console.log('[Dashboard Load] Activities from AsyncStorage:', parsed.activities?.length);
+
+            if (parsed.systemLocation) {
+              setSystemLocation(parsed.systemLocation);
+              console.log('[Dashboard Load] Restored location:', parsed.systemLocation);
+            }
+            if (Array.isArray(parsed.emergencyContacts)) {
+              setEmergencyContacts(parsed.emergencyContacts);
+              console.log('[Dashboard Load] Restored emergency contacts:', parsed.emergencyContacts);
+            }
+            if (typeof parsed.smsSent === 'number') setSmsSent(parsed.smsSent);
+            if (typeof parsed.pushSent === 'number') setPushSent(parsed.pushSent);
+            if (typeof parsed.lastAlertTime === 'string') setLastAlertTime(parsed.lastAlertTime);
+            if (Array.isArray(parsed.activities)) {
+              setActivities(parsed.activities);
+              console.log('[Dashboard Load] Restored activities:', parsed.activities.length);
+            }
+          } else {
+            console.log('[Dashboard Load] No saved state found');
+          }
+        } catch (error) {
+          console.error('[Dashboard Load] Failed to load dashboard state:', error);
+        }
+      };
+
+      loadDashboardState();
+    }
+  }, [user?.id, setUserId]);
+
+  // Save dashboard state to AsyncStorage for mobile persistence
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const saveState = async () => {
+      try {
+        const stateToSave = {
+          systemLocation,
+          emergencyContacts,
+          smsSent,
+          pushSent,
+          lastAlertTime,
+          activities,
+        };
+        console.log('[Dashboard Save] Saving state for user:', user.id);
+        console.log('[Dashboard Save] Activities count:', activities.length);
+        console.log('[Dashboard Save] State to save:', stateToSave);
+        await AsyncStorage.setItem(`dashboard-${user.id}`, JSON.stringify(stateToSave));
+        console.log('[Dashboard Save] State saved successfully');
+      } catch (error) {
+        console.error('[Dashboard Save] Failed to save dashboard state:', error);
+      }
+    };
+    
+    saveState();
+  }, [systemLocation, emergencyContacts, smsSent, pushSent, lastAlertTime, activities, user?.id]);
+
   useEffect(() => {
     // Only load state if both token and user.email are present
     if (token && user?.email) {
@@ -499,6 +702,7 @@ export default function Dashboard() {
         isStateLoadedRef.current = false;
         lastLoadedUserRef.current = user.email;
       }
+      console.log('[Backend Load] Triggering backend load for user:', user.email);
       void loadDashboardStateFromBackend();
     }
 
@@ -529,8 +733,6 @@ export default function Dashboard() {
     emergencyContacts,
     smsSent,
     pushSent,
-    powerMode,
-    battery,
     lastAlertTime,
     smsPerAlert,
     systemLocation,
@@ -593,8 +795,8 @@ export default function Dashboard() {
                   styles.sensorCard,
                   { padding: responsive.cardPadding },
                   {
-                    width: sensor.id === 3 ? '100%' : '48%',
-                    marginRight: sensor.id === 3 || idx === 1 ? 0 : '4%',
+                    width: sensor.id === 3 ? '100%' as any : responsive.sensorCardWidth as any,
+                    marginRight: sensor.id === 3 || idx === 1 ? 0 : '4%' as any,
                   },
                   isAlertActive && sensor.status === 'critical' && {
                     borderColor: '#ff4444',
@@ -603,7 +805,7 @@ export default function Dashboard() {
                 ]}
               >
                 <View style={styles.sensorHeader}>
-                  <Text style={styles.sensorName}>{sensor.name}</Text>
+                  <Text style={[styles.sensorName, { fontSize: responsive.sensorNameFontSize }]}>{sensor.name}</Text>
                   <Animated.View
                     style={[
                       styles.statusDot,
@@ -632,16 +834,17 @@ export default function Dashboard() {
                   >
                     {sensor.value.toFixed(sensor.id === 3 ? 1 : 0)}
                   </Text>
-                  <Text style={styles.sensorUnit}>{sensor.unit}</Text>
+                  <Text style={[styles.sensorUnit, { fontSize: responsive.sensorUnitFontSize }]}>{sensor.unit}</Text>
                 </View>
 
                 <View style={styles.sensorDivider} />
 
                 <View style={styles.sensorFooter}>
-                  <Text style={styles.moduleText}>{sensor.module}</Text>
+                  <Text style={[styles.moduleText, { fontSize: responsive.moduleTextFontSize }]}>{sensor.module}</Text>
                   <Text
                     style={[
                       styles.statusText,
+                      { fontSize: responsive.statusTextFontSize },
                       sensor.status === 'critical' && styles.statusTextCritical,
                     ]}
                   >
@@ -668,31 +871,82 @@ export default function Dashboard() {
             </View>
 
             <ScrollView style={styles.alertHistoryBox} nestedScrollEnabled showsVerticalScrollIndicator={false}>
-              {activities.length > 0 && activities.slice(0, 1).map((activity) => (
-                <View key={activity.id} style={styles.activityItem}>
-                  {activity.type === 'alert' ? (
-                    <>
-                      <Text style={styles.activityTime}>{activity.time}</Text>
-                      <Text style={styles.activityAlert}>{activity.message}</Text>
-                      <View style={styles.notificationsList}>
-                        {activity.notifications?.map((notif, idx) => (
-                          <View key={idx} style={styles.notificationItem}>
-                            <Text style={styles.notificationIcon}>
-                              {notif.type === 'local' ? '🔊' : notif.type === 'sms' ? '📱' : '📲'}
-                            </Text>
-                            <Text style={styles.notificationText}>{notif.message}</Text>
+              {activities.length > 0 ? (
+                activities.slice(0, 1).map((activity) => (
+                  <View key={activity.id} style={styles.alertCard}>
+                    {activity.type === 'alert' ? (
+                      <View style={[styles.alertTableRow, { gap: responsive.alertTableRowGap }]}>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Date</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.date || '-'}</Text>
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Time</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.time}</Text>
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Alert</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.message}</Text>
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Sensors</Text>
+                          {activity.sensors ? (
+                            <View style={[styles.triggeredSensorsContainer, { gap: responsive.triggeredSensorsGap }]}>
+                              {activity.sensors.map((sensor, idx) => (
+                                <View key={idx} style={[styles.triggeredSensorBox, { paddingHorizontal: responsive.triggeredSensorBoxPaddingHorizontal, paddingVertical: responsive.triggeredSensorBoxPaddingVertical, gap: responsive.triggeredSensorBoxGap }]}>
+                                  <Text style={[styles.triggeredSensorName, { fontSize: responsive.triggeredSensorNameFontSize }]}>{sensor.name}</Text>
+                                  <Text style={[styles.triggeredSensorLevel, { fontSize: responsive.triggeredSensorLevelFontSize }]}>{sensor.level}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          ) : (
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>-</Text>
+                          )}
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Location</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.location || '-'}</Text>
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Status</Text>
+                          <View style={[styles.alertBadge, activity.message.includes('CRITICAL') ? styles.alertBadgeCritical : styles.alertBadgeWarning]}>
+                            <Text style={[styles.alertBadgeText, { fontSize: responsive.alertBadgeFontSize }]}>{activity.message.includes('CRITICAL') ? 'CRITICAL' : 'WARNING'}</Text>
                           </View>
-                        ))}
+                        </View>
                       </View>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={styles.activityTime}>{activity.time}</Text>
-                      <Text style={styles.activityMessage}>{activity.message}</Text>
-                    </>
-                  )}
+                    ) : (
+                      <View style={[styles.alertTableRow, { gap: responsive.alertTableRowGap }]}>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Time</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.time}</Text>
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Message</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.message}</Text>
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Sensors</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>-</Text>
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Location</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>-</Text>
+                        </View>
+                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Status</Text>
+                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>INFO</Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                ))
+              ) : (
+                <View style={styles.noAlertContainer}>
+                  <Text style={styles.noAlertIcon}>✓</Text>
+                  <Text style={styles.noAlertText}>No alerts</Text>
+                  <Text style={styles.noAlertSubtext}>System is operating normally</Text>
                 </View>
-              ))}
+              )}
             </ScrollView>
           </View>
 
@@ -715,14 +969,6 @@ export default function Dashboard() {
               />
             </View>
 
-            <TouchableOpacity
-              style={[styles.buttonSimulate, { paddingVertical: responsive.buttonPaddingVertical }, isAlertActive && styles.buttonDisabled]}
-              onPress={handleSimulate}
-              disabled={isAlertActive}
-            >
-              <Text style={[styles.buttonSimulateText, { fontSize: responsive.isMobile ? 12 : 14 }]}>Simulate Fire</Text>
-            </TouchableOpacity>
-
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.buttonResetLeft}
@@ -742,20 +988,12 @@ export default function Dashboard() {
 
             <View style={styles.statsBox}>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Power Mode:</Text>
-                <Text style={styles.statValue}>{powerMode}</Text>
-              </View>
-              <View style={styles.statRow}>
                 <Text style={styles.statLabel}>SMS per Alert:</Text>
                 <Text style={styles.statValue}>{smsPerAlert}</Text>
               </View>
               <View style={styles.statRow}>
                 <Text style={styles.statLabel}>Last Alert:</Text>
                 <Text style={styles.statValue}>{lastAlertTime}</Text>
-              </View>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Battery:</Text>
-                <Text style={styles.statValue}>{battery}%</Text>
               </View>
             </View>
           </View>
@@ -847,7 +1085,7 @@ export default function Dashboard() {
                     <Text style={styles.inputLabel}>Phone Number</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="+1-800-555-0000"
+                      placeholder="+63-9XX-XXX-XXXX"
                       placeholderTextColor="#666"
                       value={contactInput.phone}
                       onChangeText={(text) => setContactInput(prev => ({ ...prev, phone: text }))}
@@ -892,22 +1130,79 @@ export default function Dashboard() {
               <ScrollView style={styles.fullHistoryList}>
                 {activities.length > 0 ? (
                   activities.map((activity) => (
-                    <View key={activity.id} style={styles.historyItem}>
-                      <Text style={styles.historyTime}>{activity.time}</Text>
-                      <Text style={styles.historyMessage}>{activity.message}</Text>
-                      {activity.notifications && (
-                        <View style={styles.historyNotifications}>
-                          {activity.notifications.map((notif, idx) => (
-                            <Text key={idx} style={styles.historyNotification}>
-                              {notif.type === 'local' ? '🔊' : notif.type === 'sms' ? '📱' : '📲'} {notif.message}
-                            </Text>
-                          ))}
+                    <View key={activity.id} style={styles.historyCard}>
+                      {activity.type === 'alert' ? (
+                        <View style={[styles.alertTableRow, { gap: responsive.alertTableRowGap }]}>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Date</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.date || '-'}</Text>
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Time</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.time}</Text>
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Alert</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.message}</Text>
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Sensors</Text>
+                            {activity.sensors ? (
+                              <View style={[styles.triggeredSensorsContainer, { gap: responsive.triggeredSensorsGap }]}>
+                                {activity.sensors.map((sensor, idx) => (
+                                  <View key={idx} style={[styles.triggeredSensorBox, { paddingHorizontal: responsive.triggeredSensorBoxPaddingHorizontal, paddingVertical: responsive.triggeredSensorBoxPaddingVertical, gap: responsive.triggeredSensorBoxGap }]} >
+                                    <Text style={[styles.triggeredSensorName, { fontSize: responsive.triggeredSensorNameFontSize }]}>{sensor.name}</Text>
+                                    <Text style={[styles.triggeredSensorLevel, { fontSize: responsive.triggeredSensorLevelFontSize }]}>{sensor.level}</Text>
+                                  </View>
+                                ))}
+                              </View>
+                            ) : (
+                              <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>-</Text>
+                            )}
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Location</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.location || '-'}</Text>
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Status</Text>
+                            <View style={[styles.alertBadge, activity.message.includes('CRITICAL') ? styles.alertBadgeCritical : styles.alertBadgeWarning]}>
+                              <Text style={[styles.alertBadgeText, { fontSize: responsive.alertBadgeFontSize }]}>{activity.message.includes('CRITICAL') ? 'CRITICAL' : 'WARNING'}</Text>
+                            </View>
+                          </View>
+                        </View>
+                      ) : (
+                        <View style={[styles.alertTableRow, { gap: responsive.alertTableRowGap }]}>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Time</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.time}</Text>
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Message</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.message}</Text>
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Sensors</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>-</Text>
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Location</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>-</Text>
+                          </View>
+                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
+                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Status</Text>
+                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>INFO</Text>
+                          </View>
                         </View>
                       )}
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.noHistoryText}>No alerts recorded</Text>
+                  <View style={styles.noAlertContainer}>
+                    <Text style={styles.noAlertIcon}>✓</Text>
+                    <Text style={styles.noAlertText}>No alerts</Text>
+                    <Text style={styles.noAlertSubtext}>System is operating normally</Text>
+                  </View>
                 )}
               </ScrollView>
             </View>
@@ -1102,8 +1397,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: 'rgba(100, 80, 130, 0.6)',
-    padding: 12,
-    marginBottom: 12,
+    padding: 18,
+    marginBottom: 16,
   },
   sensorCardLast: {
     width: '100%',
@@ -1198,18 +1493,42 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     maxHeight: 200,
   },
-  activityItem: {
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  alertCard: {
+    backgroundColor: 'rgba(26, 20, 37, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 140, 66, 0.3)',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  alertTableRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  alertTableColumn: {
+    flex: 1,
+    minWidth: 80,
+  },
+  alertTableLabel: {
+    fontSize: 10,
+    color: '#999',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  alertTableValue: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '500',
   },
   activityTime: {
-    fontSize: 10,
+    fontSize: 13,
     color: '#999',
     marginBottom: 4,
   },
   activityMessage: {
-    fontSize: 20,
+    fontSize: 17,
     color: '#ccc',
   },
   activityAlert: {
@@ -1235,6 +1554,78 @@ const styles = StyleSheet.create({
   notificationText: {
     fontSize: 11,
     color: '#bbb',
+  },
+  alertHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  alertBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  alertBadgeCritical: {
+    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    borderWidth: 1,
+    borderColor: '#ff4444',
+  },
+  alertBadgeWarning: {
+    backgroundColor: 'rgba(255, 140, 66, 0.2)',
+    borderWidth: 1,
+    borderColor: '#ff8c42',
+  },
+  alertBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+  triggeredSensorsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+  },
+  triggeredSensorBox: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  triggeredSensorName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  triggeredSensorLevel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ff8c42',
+  },
+  noAlertContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+  },
+  noAlertIcon: {
+    fontSize: 48,
+    color: '#00d084',
+    marginBottom: 8,
+  },
+  noAlertText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  noAlertSubtext: {
+    fontSize: 14,
+    color: '#999',
   },
   viewAllButton: {
     backgroundColor: 'rgba(60, 50, 80, 0.8)',
@@ -1277,18 +1668,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#999',
     marginTop: 2,
-  },
-  buttonSimulate: {
-    backgroundColor: '#ff9500',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  buttonSimulateText: {
-    color: '#000',
-    fontSize: 14,
-    fontWeight: '600',
   },
   buttonReset: {
     backgroundColor: 'rgba(26, 26, 46, 0.8)',
@@ -1558,13 +1937,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
-  historyItem: {
+  historyCard: {
     backgroundColor: 'rgba(38, 30, 46, 0.8)',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#ff8c42',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 140, 66, 0.3)',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
   },
   historyTime: {
     fontSize: 10,
@@ -1585,6 +1964,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#bbb',
     marginBottom: 4,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  historyNotificationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  historyNotificationIcon: {
+    fontSize: 12,
+  },
+  historyNotificationText: {
+    fontSize: 11,
+    color: '#bbb',
   },
   noHistoryText: {
     fontSize: 13,

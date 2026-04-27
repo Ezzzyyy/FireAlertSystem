@@ -82,6 +82,87 @@ npm start
 - iOS simulator/web uses `http://localhost:4000`
 - If using a physical phone, update `constants/api.ts` to your computer's LAN IP (example: `http://192.168.1.10:4000`).
 
+## Hardware Telemetry (ESP32/Arduino)
+
+The backend now accepts direct sensor data from your hardware and normalizes noisy readings.
+
+If you are using Firebase as the single realtime source for the mobile app, write live telemetry to:
+
+- Firestore document path: `hardware/liveTelemetry`
+
+Accepted shape for app realtime update:
+
+```json
+{
+  "fire": 32,
+  "smoke": 120,
+  "heat": 36.5,
+  "receivedAt": "2026-04-22T10:35:00.000Z"
+}
+```
+
+Or include a full `sensors` array matching dashboard sensor objects.
+
+### Backend to Firestore bridge setup
+
+The backend now mirrors each `POST /hardware/telemetry` into Firestore so all logged-in devices see realtime updates.
+
+1. Install backend dependencies (already done in this repo):
+
+```bash
+npm install --prefix backend
+```
+
+2. Provide Firebase Admin credentials using either option:
+
+- Option A: set `FIREBASE_SERVICE_ACCOUNT_PATH` to your service-account JSON file.
+- Option B: set `GOOGLE_APPLICATION_CREDENTIALS` to your service-account JSON file.
+
+3. Run backend:
+
+```bash
+npm run api
+```
+
+On success, hardware telemetry is mirrored to:
+
+- `hardware/liveTelemetry` (realtime document used by the app)
+- `hardwareTelemetryHistory` (historical log collection)
+
+- Endpoint: `POST /hardware/telemetry`
+- Header required: `x-device-key: <DEVICE_API_KEY>`
+- Backend env var: `DEVICE_API_KEY` (default: `dev-device-key`)
+
+Example payload from ESP32:
+
+```json
+{
+  "deviceId": "esp32-main",
+  "fireAnalog": 1020,
+  "fireDigital": true,
+  "smokeAnalog": 870,
+  "heatC": 32.5
+}
+```
+
+Supported fields are flexible to help recover from rewiring/recalibration:
+
+- Fire: `firePercent` or `fireAnalog` or `fireDigital`
+- Smoke: `smokePpm` or `smokeAnalog`
+- Heat: `heatC` (or `temperature` / `tempC`)
+
+Firmware starter file:
+
+- `hardware/esp32_fire_alert/esp32_fire_alert.ino`
+
+### Quick Wiring Recovery Checklist
+
+1. Confirm sensor VCC/GND first before signal lines.
+2. Keep analog signal lines short and avoid sharing noisy power rails.
+3. Test raw serial readings for 2-3 minutes before enabling alerts.
+4. If flame behavior is inverted, use `fireDigital` and calibrate analog later.
+5. Set your LAN IP in firmware `API_URL` and make sure backend is running.
+
 ## Project Structure
 
 ```

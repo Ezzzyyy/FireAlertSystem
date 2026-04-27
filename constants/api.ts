@@ -31,8 +31,9 @@ const hostIp = getHostIpFromExpo();
 const LAN_BASE_URL = hostIp ? `http://${hostIp}:4000` : null;
 
 export const API_BASE_URL =
-  envBaseUrl ||
-  appConfigBaseUrl ||
-  (Platform.OS === 'web'
-    ? LOCALHOST_BASE_URL
-    : LAN_BASE_URL || (Platform.OS === 'android' ? ANDROID_EMULATOR_BASE_URL : LOCALHOST_BASE_URL));
+  Platform.OS === 'web'
+    ? envBaseUrl || LOCALHOST_BASE_URL
+    : envBaseUrl ||
+      appConfigBaseUrl ||
+      LAN_BASE_URL ||
+      (Platform.OS === 'android' ? ANDROID_EMULATOR_BASE_URL : LOCALHOST_BASE_URL);

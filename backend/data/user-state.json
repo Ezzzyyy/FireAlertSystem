@@ -1,3 +1,3223 @@
 {
-  
+  "queenhezekiah04@gmail.com": {
+    "sensors": [
+      {
+        "id": 2,
+        "kind": "fire",
+        "name": "Fire Sensor",
+        "value": 0,
+        "unit": "%",
+        "status": "normal",
+        "module": "IR Fire Module"
+      },
+      {
+        "id": 1,
+        "kind": "smoke",
+        "name": "Smoke Sensor",
+        "value": 511,
+        "unit": "ppm",
+        "status": "normal",
+        "module": "MQ-2/MQ-135"
+      },
+      {
+        "id": 3,
+        "kind": "heat",
+        "name": "Heat Sensor",
+        "value": 30.6,
+        "unit": "°C",
+        "status": "normal",
+        "module": "DHT22"
+      }
+    ],
+    "isArmed": true,
+    "activities": [
+      {
+        "id": "1777233121339-cmx33p",
+        "time": "4/27/2026 3:52:01 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 438,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.7,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "4/27/2026 3:52:01 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "4/27/2026 3:52:01 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 3:52:01 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "4/27/2026 3:52:01 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777233037589-0b3l1o",
+        "time": "4/27/2026 3:50:37 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 461,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.7,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "4/27/2026 3:50:37 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "4/27/2026 3:50:37 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 3:50:37 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "4/27/2026 3:50:37 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777232859926-n89cim",
+        "time": "4/27/2026 3:47:39 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 496,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.7,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "4/27/2026 3:47:39 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "4/27/2026 3:47:39 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 3:47:39 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "4/27/2026 3:47:39 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777232692335-quj1lm",
+        "time": "4/27/2026 3:44:52 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 503,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.7,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "4/27/2026 3:44:52 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "4/27/2026 3:44:52 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 3:44:52 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "4/27/2026 3:44:52 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777231538517-ytul19",
+        "time": "4/27/2026 3:25:38 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 496,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.7,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "4/27/2026 3:25:38 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "4/27/2026 3:25:38 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 3:25:38 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "4/27/2026 3:25:38 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777231295397-w1h65v",
+        "time": "3:21:35 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.7,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "3:21:35 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "3:21:35 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 3:21:35 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "3:21:35 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777230247413-tua4wo",
+        "time": "3:04:07 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 573,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "3:04:07 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "3:04:07 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 3:04:07 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "3:04:07 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777230214627-m48ozh",
+        "time": "3:03:34 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 545,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "3:03:34 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "3:03:34 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 3:03:34 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "3:03:34 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229829978-vw9owq",
+        "time": "2:57:09 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 553,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:57:09 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:57:09 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:57:09 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:57:09 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229826994-s7iu9a",
+        "time": "2:57:06 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 550,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:57:06 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:57:06 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:57:06 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:57:06 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229823970-518t9p",
+        "time": "2:57:03 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 556,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:57:03 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:57:03 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:57:03 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:57:03 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229814970-6xcizm",
+        "time": "2:56:54 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 566,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:56:54 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:56:54 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:56:54 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:56:54 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229805973-7tskrk",
+        "time": "2:56:45 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 557,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:56:45 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:56:45 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:56:45 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:56:45 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229793971-yx7tzl",
+        "time": "2:56:33 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 576,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:56:33 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:56:33 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:56:33 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:56:33 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229693174-rbl73o",
+        "time": "2:54:53 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 562,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:54:53 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:54:53 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:54:53 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:54:53 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229590600-58samv",
+        "time": "2:53:10 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 569,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:53:10 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:53:10 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:53:10 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:53:10 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229501112-mp4rre",
+        "time": "2:51:41 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 567,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:51:41 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:51:41 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:51:41 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:51:41 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229420103-wteiq4",
+        "time": "2:50:20 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 595,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:50:20 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:50:20 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:50:20 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:50:20 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777229208716-mlls3y",
+        "time": "2:46:48 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 605,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:46:48 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:46:48 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:46:48 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:46:48 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228884738-fd22g9",
+        "time": "2:41:24 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 528,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.7,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:41:24 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:41:24 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:41:24 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:41:24 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228875732-w4z2pm",
+        "time": "2:41:15 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 497,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:41:15 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:41:15 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:41:15 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:41:15 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228433643-yzw71h",
+        "time": "2:33:53 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:33:53 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:33:53 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:33:53 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:33:53 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228430985-jamce9",
+        "time": "2:33:50 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:33:50 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:33:50 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:33:50 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:33:50 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228313882-ggg7ow",
+        "time": "2:31:53 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:31:53 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:31:53 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:31:53 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:31:53 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228310865-zfnd5p",
+        "time": "2:31:50 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:31:50 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:31:50 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:31:50 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:31:50 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228304966-3syjv3",
+        "time": "2:31:44 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:31:44 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:31:44 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:31:44 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:31:44 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228301700-8so8vd",
+        "time": "2:31:41 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:31:41 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:31:41 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:31:41 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:31:41 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228285936-7adrn6",
+        "time": "2:31:25 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:31:25 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:31:25 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:31:25 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:31:25 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228282837-v17xjl",
+        "time": "2:31:22 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:31:22 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:31:22 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:31:22 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:31:22 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228261834-3ml0t5",
+        "time": "2:31:01 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:31:01 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:31:01 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:31:01 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:31:01 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777228017067-9u5a07",
+        "time": "2:26:57 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 523,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:26:57 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:26:57 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:26:57 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:26:57 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777227987093-6rz0jo",
+        "time": "2:26:27 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 509,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.6,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:26:27 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:26:27 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:26:27 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:26:27 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777227243301-owtsx2",
+        "time": "2:14:03 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 499,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:14:03 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:14:03 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:14:03 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:14:03 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777227232135-8fffsd",
+        "time": "2:13:52 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 499,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:13:52 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:13:52 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:13:52 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:13:52 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777227096295-jhw4ie",
+        "time": "2:11:36 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 485,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.1,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:11:36 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:11:36 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:11:36 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:11:36 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777226540863-x1o3hm",
+        "time": "2:02:20 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 499,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.1,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "2:02:20 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "2:02:20 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 2:02:20 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "2:02:20 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777226251950-rcm22y",
+        "time": "1:57:31 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:57:31 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:57:31 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:57:31 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:57:31 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777226233963-onsogn",
+        "time": "1:57:13 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:57:13 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:57:13 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:57:13 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:57:13 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777226110481-7a84qr",
+        "time": "1:55:10 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 502,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:55:10 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:55:10 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:55:10 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:55:10 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777225756513-9f9ehd",
+        "time": "1:49:16 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 510,
+            "unit": "raw",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:49:16 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:49:16 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:49:16 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:49:16 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777225736837-madyv4",
+        "time": "1:48:56 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 501,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:48:56 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:48:56 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:48:56 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:48:56 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777225438042-fxpbqc",
+        "time": "1:43:58 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 502,
+            "unit": "raw",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:43:58 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:43:58 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:43:58 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:43:58 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777225436146-iyp8il",
+        "time": "1:43:56 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 502,
+            "unit": "raw",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:43:56 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:43:56 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:43:56 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:43:56 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777225408989-1pqvry",
+        "time": "1:43:28 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 511,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:43:28 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:43:28 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:43:28 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:43:28 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777225268151-aenmlv",
+        "time": "1:41:08 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 503,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.1,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:41:08 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:41:08 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:41:08 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:41:08 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777225137541-8qjf01",
+        "time": "1:38:57 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 503,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:38:57 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:38:57 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:38:57 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:38:57 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777224857538-o2h6nq",
+        "time": "1:34:17 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 507,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.1,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:34:17 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:34:17 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:34:17 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:34:17 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777224413466-3tqyta",
+        "time": "1:26:53 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 555,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:26:53 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:26:53 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:26:53 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:26:53 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777223606458-46ngck",
+        "time": "1:13:26 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 440,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.2,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:13:26 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:13:26 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:13:26 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:13:26 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777223304527-fuxtkn",
+        "time": "1:08:24 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 608,
+            "unit": "raw",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.3,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:08:24 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:08:24 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:08:24 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:08:24 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777223302711-ieltyq",
+        "time": "1:08:22 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 608,
+            "unit": "raw",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30.3,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:08:22 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:08:22 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:08:22 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:08:22 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      },
+      {
+        "id": "1777223132130-7j20i3",
+        "time": "1:05:32 AM",
+        "date": "4/27/2026",
+        "message": "CRITICAL",
+        "type": "alert",
+        "sensors": [
+          {
+            "name": "Fire Sensor",
+            "level": "100%",
+            "status": "critical"
+          }
+        ],
+        "allSensors": [
+          {
+            "id": 2,
+            "name": "Fire Sensor",
+            "value": 100,
+            "unit": "%",
+            "status": "critical",
+            "kind": "fire",
+            "module": "IR Fire Module"
+          },
+          {
+            "id": 1,
+            "name": "Smoke Sensor",
+            "value": 383,
+            "unit": "ppm",
+            "status": "normal",
+            "kind": "smoke",
+            "module": "MQ-2/MQ-135"
+          },
+          {
+            "id": 3,
+            "name": "Heat Sensor",
+            "value": 30,
+            "unit": "°C",
+            "status": "normal",
+            "kind": "heat",
+            "module": "DHT22"
+          }
+        ],
+        "location": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+        "notifications": [
+          {
+            "time": "1:05:32 AM",
+            "type": "local",
+            "message": "Local LED + Buzzer activated"
+          },
+          {
+            "time": "1:05:32 AM",
+            "type": "sms",
+            "message": "SMS to Mama: 🚨 EMERGENCY FIRE ALERT\nSensor: Fire Sensor\nLevel: 100%\nStatus: CRITICAL - EVACUATE NOW\nTime: 4/27/2026, 1:05:32 AM\nLocation: Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula\nEmergency: 911\nSystem: Fire Alert IoT"
+          },
+          {
+            "time": "1:05:32 AM",
+            "type": "push",
+            "message": "Push notification sent via Firebase"
+          }
+        ]
+      }
+    ],
+    "emergencyContacts": [
+      {
+        "id": 1777212580944,
+        "name": "Mama",
+        "phone": "09892087492",
+        "enabled": true,
+        "warningSmsEnabled": true
+      }
+    ],
+    "smsSent": 20,
+    "pushSent": 20,
+    "lastAlertTime": "2:14:03 AM",
+    "smsPerAlert": 1,
+    "systemLocation": "Lumbia, City of Pagadian, Zamboanga Del Sur, Zamboanga Peninsula",
+    "updatedAt": "2026-04-26T20:06:21.518Z"
+  }
 }
