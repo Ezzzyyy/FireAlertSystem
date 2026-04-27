@@ -78,6 +78,19 @@ interface DashboardSensor {
   module: string;
 }
 
+interface EmergencyContact {
+  id: number;
+  name: string;
+  phone: string;
+  enabled: boolean;
+  warningSmsEnabled: boolean;
+}
+
+interface ActivitySensorItem {
+  name: string;
+  level: string;
+}
+
 const SENSOR_THRESHOLDS: Record<SensorKind, { warning: number; critical: number }> = {
   fire: { warning: 65, critical: 85 },
   smoke: { warning: 1200, critical: 1600 },
@@ -101,27 +114,25 @@ const getAlertLevel = (sensors: DashboardSensor[]): 'critical' | 'warning' | 'no
   const smokeSensor = sensors.find(s => s.kind === 'smoke');
   const heatSensor = sensors.find(s => s.kind === 'heat');
 
-  const flameDetected = fireSensor?.value !== undefined && fireSensor.value > 0;
-  const smokeRaw = smokeSensor?.value || 0;
-  const tempC = heatSensor?.value || 0;
+  const fireCritical = fireSensor?.value !== undefined && fireSensor.value >= SENSOR_THRESHOLDS.fire.critical;
+  const smokeStatus = smokeSensor ? getSensorStatus('smoke', smokeSensor.value) : 'normal';
+  const heatStatus = heatSensor ? getSensorStatus('heat', heatSensor.value) : 'normal';
 
   // CRITICAL: Fire CRITICAL alone (after 3s validation on hardware)
-  if (flameDetected) {
+  if (fireCritical) {
     return 'critical'; // Fire CRITICAL alone triggers buzzer + LED
   }
   // CRITICAL: Both heat AND smoke critical
-  else if (smokeRaw >= SENSOR_THRESHOLDS.smoke.critical && tempC >= SENSOR_THRESHOLDS.heat.critical) {
+  else if (smokeStatus === 'critical' && heatStatus === 'critical') {
     return 'critical'; // Both heat AND smoke critical triggers buzzer + LED
   }
-  // WARNING: One sensor warning (heat OR smoke at warning level, not critical)
-  else if ((smokeRaw >= SENSOR_THRESHOLDS.smoke.warning && smokeRaw < SENSOR_THRESHOLDS.smoke.critical) || 
-           (tempC >= SENSOR_THRESHOLDS.heat.warning && tempC < SENSOR_THRESHOLDS.heat.critical)) {
-    return 'warning'; // One sensor warning triggers WARNING (LED only)
-  }
-  // WARNING: One sensor warning and one critical (heat warning + smoke critical OR smoke warning + heat critical)
-  else if ((smokeRaw >= SENSOR_THRESHOLDS.smoke.warning && tempC >= SENSOR_THRESHOLDS.heat.warning) && 
-           !(smokeRaw >= SENSOR_THRESHOLDS.smoke.critical && tempC >= SENSOR_THRESHOLDS.heat.critical)) {
-    return 'warning'; // Mixed warning/critical triggers WARNING (LED only)
+  // WARNING: Any non-normal sensor state that is not a critical fire or smoke+heat critical combo.
+  else if (
+    fireSensor?.value !== undefined && fireSensor.value > 0 ||
+    smokeStatus !== 'normal' ||
+    heatStatus !== 'normal'
+  ) {
+    return 'warning'; // Warning level triggers LED only
   }
   // Normal: All other cases
   else {
@@ -144,10 +155,13 @@ const generateSMSMessage = (sensor: DashboardSensor, status: 'warning' | 'critic
   }
 };
 
+const formatSensorDisplayName = (name: string) => name.replace(/\s*sensor$/i, '').trim();
+
 const createUniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const ALARM_SOURCES = [
   require('../assets/alarm.wav'),
 ];
+const TELEMETRY_STALE_MS = 15000;
 
 export default function Dashboard() {
   const router = useRouter();
@@ -163,6 +177,14 @@ export default function Dashboard() {
     { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: 1, unit: 'ppm', status: getSensorStatus('smoke', 1), module: 'MQ-2/MQ-135' },
     { id: 3, kind: 'heat', name: 'Heat Sensor', value: 22.5, unit: '°C', status: getSensorStatus('heat', 22.5), module: 'DHT22' },
   ]);
+  const latestTelemetryAtRef = useRef<number | null>(null);
+
+  const isTelemetryFresh = () => {
+    if (!latestTelemetryAtRef.current) {
+      return false;
+    }
+    return Date.now() - latestTelemetryAtRef.current <= TELEMETRY_STALE_MS;
+  };
 
   // Check auth on mount to restore user session
   useEffect(() => {
@@ -177,7 +199,9 @@ export default function Dashboard() {
         const response = await fetch(`${API_BASE_URL}/hardware/latest`);
         const data = await response.json();
         if (data.success && data.telemetry) {
-          const { fire, smoke, heat } = data.telemetry;
+          const { fire, smoke, heat, receivedAt } = data.telemetry;
+          const parsedReceivedAt = typeof receivedAt === 'string' ? Date.parse(receivedAt) : NaN;
+          latestTelemetryAtRef.current = Number.isFinite(parsedReceivedAt) ? parsedReceivedAt : Date.now();
 
           // Always update sensors to show live data
           setSensors([
@@ -231,10 +255,10 @@ export default function Dashboard() {
   const [isAlertActive, setIsAlertActive] = useState(false);
   const [activities, setActivities] = useState<any[]>([]);
   const [showFullHistory, setShowFullHistory] = useState(false);
-  const [emergencyContacts, setEmergencyContacts] = useState([]);
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactInput, setContactInput] = useState({ name: '', phone: '' });
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const [smsSent, setSmsSent] = useState(0);
   const [pushSent, setPushSent] = useState(0);
@@ -357,6 +381,12 @@ export default function Dashboard() {
         body: JSON.stringify({ state: stateToSave }),
       });
       console.log('[Backend Save] Response status:', response.status);
+      if (response.status === 401) {
+        console.warn('[Backend Save] Session expired. Redirecting to login.');
+        logout();
+        router.replace('/login');
+        return;
+      }
       if (!response.ok) {
         console.error('[Backend Save] Failed to save, response:', await response.text());
       }
@@ -385,6 +415,10 @@ export default function Dashboard() {
         console.log('[Backend Load] Loaded state from backend:', payload.state);
         console.log('[Backend Load] Backend activities count:', payload.state?.activities?.length);
         applyPersistedDashboardState(payload.state);
+      } else if (response.status === 401) {
+        console.warn('[Backend Load] Session expired. Redirecting to login.');
+        logout();
+        router.replace('/login');
       } else {
         console.log('[Backend Load] Failed to load, response status:', response.status);
       }
@@ -437,11 +471,11 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteContact = (id: string | number) => {
+  const handleDeleteContact = (id: number) => {
     setEmergencyContacts(prev => prev.filter(c => c.id !== id));
   };
 
-  const handleToggleWarningSms = (id: string | number) => {
+  const handleToggleWarningSms = (id: number) => {
     setEmergencyContacts(prev => 
       prev.map(c => c.id === id ? { ...c, warningSmsEnabled: !c.warningSmsEnabled } : c)
     );
@@ -450,6 +484,10 @@ export default function Dashboard() {
   // WARNING: Send SMS only to selected contacts using multi-sensor detection logic
   useEffect(() => {
     if (!isArmed) {
+      return;
+    }
+
+    if (!isTelemetryFresh()) {
       return;
     }
 
@@ -463,6 +501,11 @@ export default function Dashboard() {
     console.log('[Warning Alert] Sensors:', sensors.map(s => ({ name: s.name, status: s.status, value: s.value })));
     
     if (alertLevel === 'warning' && !processedSensorsRef.current.has(alertKey)) {
+      if (isAlertActive) {
+        setIsAlertActive(false);
+        void stopAlarmSound();
+      }
+
       processedSensorsRef.current.add(alertKey);
       
       const timestamp = new Date().toLocaleTimeString();
@@ -483,7 +526,7 @@ export default function Dashboard() {
           id: createUniqueId(),
           time: timestamp,
           date: date,
-          message: 'WARNING',
+          message: 'WARNING - LED only',
           type: 'alert',
           sensors: warningSensors.map(s => ({ name: s.name, level: `${s.value}${s.unit}` })),
           location: systemLocation,
@@ -500,7 +543,7 @@ export default function Dashboard() {
           id: createUniqueId(),
           time: timestamp,
           date: date,
-          message: 'WARNING',
+          message: 'WARNING - LED only',
           type: 'alert',
           sensors: warningSensors.map(s => ({ name: s.name, level: `${s.value}${s.unit}` })),
           location: systemLocation,
@@ -515,6 +558,10 @@ export default function Dashboard() {
   // CRITICAL: Trigger alarm + SMS using multi-sensor detection logic
   useEffect(() => {
     if (!isArmed) {
+      return;
+    }
+
+    if (!isTelemetryFresh()) {
       return;
     }
 
@@ -575,7 +622,7 @@ export default function Dashboard() {
           id: createUniqueId(),
           time: alertTimestamp,
           date: date,
-          message: 'CRITICAL',
+          message: 'CRITICAL - LED + buzzer',
           type: 'alert',
           sensors: criticalSensorSnapshot,
           allSensors: allSensorsSnapshot,
@@ -805,7 +852,7 @@ export default function Dashboard() {
                 ]}
               >
                 <View style={styles.sensorHeader}>
-                  <Text style={[styles.sensorName, { fontSize: responsive.sensorNameFontSize }]}>{sensor.name}</Text>
+                  <Text style={[styles.sensorName, { fontSize: responsive.sensorNameFontSize }]}>{formatSensorDisplayName(sensor.name)}</Text>
                   <Animated.View
                     style={[
                       styles.statusDot,
@@ -892,9 +939,9 @@ export default function Dashboard() {
                           <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Sensors</Text>
                           {activity.sensors ? (
                             <View style={[styles.triggeredSensorsContainer, { gap: responsive.triggeredSensorsGap }]}>
-                              {activity.sensors.map((sensor, idx) => (
+                              {activity.sensors.map((sensor: ActivitySensorItem, idx: number) => (
                                 <View key={idx} style={[styles.triggeredSensorBox, { paddingHorizontal: responsive.triggeredSensorBoxPaddingHorizontal, paddingVertical: responsive.triggeredSensorBoxPaddingVertical, gap: responsive.triggeredSensorBoxGap }]}>
-                                  <Text style={[styles.triggeredSensorName, { fontSize: responsive.triggeredSensorNameFontSize }]}>{sensor.name}</Text>
+                                  <Text style={[styles.triggeredSensorName, { fontSize: responsive.triggeredSensorNameFontSize }]}>{formatSensorDisplayName(sensor.name)}</Text>
                                   <Text style={[styles.triggeredSensorLevel, { fontSize: responsive.triggeredSensorLevelFontSize }]}>{sensor.level}</Text>
                                 </View>
                               ))}
@@ -1149,9 +1196,9 @@ export default function Dashboard() {
                             <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Sensors</Text>
                             {activity.sensors ? (
                               <View style={[styles.triggeredSensorsContainer, { gap: responsive.triggeredSensorsGap }]}>
-                                {activity.sensors.map((sensor, idx) => (
+                                {activity.sensors.map((sensor: ActivitySensorItem, idx: number) => (
                                   <View key={idx} style={[styles.triggeredSensorBox, { paddingHorizontal: responsive.triggeredSensorBoxPaddingHorizontal, paddingVertical: responsive.triggeredSensorBoxPaddingVertical, gap: responsive.triggeredSensorBoxGap }]} >
-                                    <Text style={[styles.triggeredSensorName, { fontSize: responsive.triggeredSensorNameFontSize }]}>{sensor.name}</Text>
+                                    <Text style={[styles.triggeredSensorName, { fontSize: responsive.triggeredSensorNameFontSize }]}>{formatSensorDisplayName(sensor.name)}</Text>
                                     <Text style={[styles.triggeredSensorLevel, { fontSize: responsive.triggeredSensorLevelFontSize }]}>{sensor.level}</Text>
                                   </View>
                                 ))}

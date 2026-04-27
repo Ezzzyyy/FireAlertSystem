@@ -155,6 +155,17 @@ Firmware starter file:
 
 - `hardware/esp32_fire_alert/esp32_fire_alert.ino`
 
+### Alert Rules
+
+The dashboard and firmware follow these rules:
+
+- Warning: one sensor reads warning, LED only.
+- Warning: smoke or heat is warning while the other is critical, LED only.
+- Critical: smoke and heat both read critical, LED and buzzer.
+- Critical: flame reads critical alone, LED and buzzer.
+
+The ESP32 keeps a 3-second confirmation window before activating the hardware alert.
+
 ### Quick Wiring Recovery Checklist
 
 1. Confirm sensor VCC/GND first before signal lines.

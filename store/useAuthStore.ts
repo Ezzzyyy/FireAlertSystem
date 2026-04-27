@@ -214,14 +214,44 @@ export const useAuthStore = create<AuthState>((set) => ({
           console.log('[checkAuth] Parsed token from storage:', parsed.token);
           
           if (validUser) {
+            if (!parsed.token) {
+              await storage.removeItem(AUTH_STORAGE_KEY).catch(() => {});
+              set({ isHydrated: true, isAuthenticated: false, user: null, token: null });
+              return;
+            }
+
+            const apiUrl = getApiUrl();
+            const sessionResponse = await fetch(`${apiUrl}/auth/me`, {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${parsed.token}`,
+              },
+              signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            });
+
+            if (!sessionResponse.ok) {
+              console.log('[checkAuth] Stored session is invalid, clearing auth state');
+              await storage.removeItem(AUTH_STORAGE_KEY).catch(() => {});
+              set({ isHydrated: true, isAuthenticated: false, user: null, token: null, error: null });
+              return;
+            }
+
+            const mePayload = await sessionResponse.json();
+            const normalizedUser: User = {
+              id: mePayload?.user?.id || parsed.user.id,
+              email: mePayload?.user?.email || parsed.user.email,
+              name: mePayload?.user?.name || parsed.user.name,
+            };
+
+            await storage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user: normalizedUser, token: parsed.token }));
             set({
-              user: parsed.user,
+              user: normalizedUser,
               token: parsed.token,
               isAuthenticated: true,
               isHydrated: true,
               error: null,
             });
-            console.log('[checkAuth] Restored user and token from storage');
+            console.log('[checkAuth] Restored validated session from storage');
             return;
           } else {
             console.log('[checkAuth] Invalid user in storage, removing');

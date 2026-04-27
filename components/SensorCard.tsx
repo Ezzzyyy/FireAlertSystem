@@ -11,6 +11,8 @@ interface SensorCardProps {
   module?: string;
 }
 
+const formatSensorTitle = (title: string) => title.replace(/\s*sensor$/i, '').trim();
+
 const SensorCard: React.FC<SensorCardProps> = ({ title, value, unit, icon, status, module }) => {
   const statusColor =
     status === 'critical' ? colors.danger : status === 'warning' ? colors.warning : colors.normal;
@@ -18,7 +20,7 @@ const SensorCard: React.FC<SensorCardProps> = ({ title, value, unit, icon, statu
   return (
     <View style={[styles.card, { borderColor: statusColor }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{formatSensorTitle(title)}</Text>
         <View style={[styles.indicator, { backgroundColor: statusColor }]} />
       </View>
 

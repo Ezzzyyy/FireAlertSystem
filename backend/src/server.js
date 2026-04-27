@@ -142,7 +142,7 @@ const syncTelemetryToFirestore = async (telemetry, sensorsSnapshot) => {
 
   const livePayload = {
     fire: telemetry.fire,
-    smoke: smokeRaw || telemetry.smoke, // Send raw value to dashboard
+    smoke: telemetry.smoke,
     heat: telemetry.heat,
     deviceId: telemetry.deviceId,
     sensors: sensorsSnapshot,
@@ -295,15 +295,18 @@ const detectFireFlicker = (sensorId, value) => {
 const validateFireSensor = (sensorId, value) => {
   // Check if fire is detected continuously for at least 3 seconds
   const now = Date.now();
-  const lastDetection = sensorHistory.get(`${sensorId}_last_detection`) || 0;
+  const firstDetectionAt = sensorHistory.get(`${sensorId}_first_detection_at`) || 0;
   
   if (value > SENSOR_THRESHOLDS.fire.warning) {
-    if (now - lastDetection >= FIRE_DETECTION_DELAY) {
-      sensorHistory.set(`${sensorId}_last_detection`, now);
+    if (!firstDetectionAt) {
+      sensorHistory.set(`${sensorId}_first_detection_at`, now);
+      return false;
+    }
+    if (now - firstDetectionAt >= FIRE_DETECTION_DELAY) {
       return true;
     }
   } else {
-    sensorHistory.set(`${sensorId}_last_detection`, 0);
+    sensorHistory.set(`${sensorId}_first_detection_at`, 0);
   }
   
   return false;
@@ -321,11 +324,11 @@ const getCombinedFireStatus = (sensors) => {
   const fireValid = validateFireSensor(fireSensor.id, fireSensor.value);
   const smokeAverage = getMovingAverage(smokeSensor.id, smokeSensor.value);
   const fireFlickering = detectFireFlicker(fireSensor.id, fireSensor.value);
-  
+
   // Detection Logic
   if (fireValid && smokeAverage >= SENSOR_THRESHOLDS.smoke.critical) {
     return 'critical'; // CRITICAL FIRE
-  } else if (smokeAverage >= SENSOR_THRESHOLDS.smoke.critical && heatSensor.value >= SENSOR_THRESHOLDS.heat.warning) {
+  } else if (smokeAverage >= SENSOR_THRESHOLDS.smoke.critical && heatSensor.value >= SENSOR_THRESHOLDS.temperature.warning) {
     return 'warning'; // FIRE WARNING
   } else if (fireValid && fireFlickering) {
     return 'verify'; // Possible false alarm, recheck
@@ -350,11 +353,11 @@ const getSensorStatus = (kind, value) => {
 
 const normalizeHardwareTelemetry = (payload) => {
   const firePercentDirect = toFiniteNumber(payload.firePercent ?? payload.fire ?? payload.fire_value);
-  const smokePercentDirect = toFiniteNumber(payload.smokePercent ?? payload.smokePpm ?? payload.smokeAnalog ?? payload.smoke_value);
+  const smokePercentDirect = toFiniteNumber(payload.smokePercent ?? payload.smokePpm ?? payload.smoke_value);
   const heatDirect = toFiniteNumber(payload.heatC ?? payload.heat ?? payload.temperature ?? payload.tempC);
 
   const fireAnalog = toFiniteNumber(payload.fireAnalog ?? payload.flameRaw ?? payload.flameAnalog);
-  const smokeAnalog = toFiniteNumber(payload.smokeAnalog ?? payload.mq2Raw ?? payload.mq135Raw);
+  const smokeAnalog = toFiniteNumber(payload.smokeAnalog ?? payload.smoke ?? payload.mq2Raw ?? payload.mq135Raw);
   const digitalFire = toBoolean(payload.fireDigital ?? payload.flameDetected ?? payload.flameDigital);
 
   let firePercent = null;
@@ -444,6 +447,7 @@ let latestHardwareTelemetry = null;
 
 // Store FCM tokens for push notifications
 const fcmTokens = new Map();
+let lastNoTokenLogAt = 0;
 
 // Load users from file on startup
 const users = readUsersStore();
@@ -612,7 +616,11 @@ app.post('/fcm/register', requireAuth, (req, res) => {
 const sendFireAlertNotification = async (sensorData, location) => {
   // Send to all registered Expo push tokens
   if (fcmTokens.size === 0) {
-    console.log('No FCM tokens registered');
+    const now = Date.now();
+    if (now - lastNoTokenLogAt >= 60000) {
+      console.log('No FCM tokens registered');
+      lastNoTokenLogAt = now;
+    }
     return;
   }
 
@@ -847,6 +855,25 @@ app.get('/hardware/latest', (_req, res) => {
       ? applyTelemetryToSensors(getDefaultDashboardState().sensors, telemetry)
       : getDefaultDashboardState().sensors,
   });
+});
+
+// Keep process alive on malformed/aborted request bodies.
+app.use((error, _req, res, next) => {
+  if (!error) {
+    return next();
+  }
+
+  if (error.type === 'entity.parse.failed') {
+    return res.status(400).json({ message: 'Invalid JSON payload.' });
+  }
+
+  if (error.type === 'request.aborted') {
+    console.warn('Request aborted by client while reading body.');
+    return res.status(400).json({ message: 'Request aborted by client.' });
+  }
+
+  console.error('Unhandled server error:', error.message);
+  return res.status(500).json({ message: 'Internal server error.' });
 });
 
 app.listen(PORT, () => {
