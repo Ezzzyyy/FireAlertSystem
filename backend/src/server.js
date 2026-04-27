@@ -109,6 +109,23 @@ const initializeFirestoreAdmin = () => {
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
         });
+      } else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY) {
+        // Use environment variables for service account
+        const serviceAccount = {
+          type: "service_account",
+          project_id: process.env.FIREBASE_PROJECT_ID,
+          private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+          private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          client_email: process.env.FIREBASE_CLIENT_EMAIL,
+          client_id: process.env.FIREBASE_CLIENT_ID,
+          auth_uri: process.env.FIREBASE_AUTH_URI,
+          token_uri: process.env.FIREBASE_TOKEN_URI,
+          auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
+          client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+        };
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+        });
       } else {
         // Falls back to GOOGLE_APPLICATION_CREDENTIALS if available.
         admin.initializeApp({
@@ -445,9 +462,25 @@ const applyTelemetryToSensors = (existingSensors, telemetry) => {
 
 let latestHardwareTelemetry = null;
 
-// Store FCM tokens for push notifications
-const fcmTokens = new Map();
+// Store FCM tokens for push notifications. Support multiple devices per user.
+const fcmTokens = new Map(); // email -> Set<ExpoPushToken>
 let lastNoTokenLogAt = 0;
+
+const addFcmTokenForUser = (email, token) => {
+  const existing = fcmTokens.get(email) || new Set();
+  existing.add(token);
+  fcmTokens.set(email, existing);
+};
+
+const getAllFcmTokens = () => {
+  const tokens = [];
+  for (const tokenSet of fcmTokens.values()) {
+    for (const token of tokenSet) {
+      tokens.push(token);
+    }
+  }
+  return tokens;
+};
 
 // Load users from file on startup
 const users = readUsersStore();
@@ -594,10 +627,6 @@ app.get('/auth/me', (req, res) => {
 app.post('/auth/logout', (req, res) => {
   const token = getTokenFromHeader(req.headers.authorization);
   if (token) {
-    const email = sessions.get(token);
-    if (email) {
-      fcmTokens.delete(email);
-    }
     sessions.delete(token);
   }
   return res.json({ success: true });
@@ -608,8 +637,8 @@ app.post('/fcm/register', requireAuth, (req, res) => {
   if (!fcmToken) {
     return res.status(400).json({ message: 'FCM token is required.' });
   }
-  fcmTokens.set(req.userEmail, fcmToken);
-  console.log(`FCM token registered for ${req.userEmail}`);
+  addFcmTokenForUser(req.userEmail, fcmToken);
+  console.log(`FCM token registered for ${req.userEmail}: ${fcmToken}`);
   return res.json({ success: true });
 });
 
@@ -625,21 +654,23 @@ const sendFireAlertNotification = async (sensorData, location) => {
   }
 
   const messages = [];
-  for (const [email, token] of fcmTokens.entries()) {
-    messages.push({
-      to: token,
-      sound: 'default',
-      title: '🚨 FIRE ALERT',
-      body: `Critical fire detected! ${sensorData.name}: ${sensorData.value}${sensorData.unit}`,
-      data: {
-        type: 'fire_alert',
-        sensor: sensorData.name,
-        value: sensorData.value.toString(),
-        unit: sensorData.unit,
-        location: location || 'Unknown',
-        timestamp: new Date().toISOString(),
-      },
-    });
+  for (const [email, tokenSet] of fcmTokens.entries()) {
+    for (const token of tokenSet) {
+      messages.push({
+        to: token,
+        sound: 'default',
+        title: '🚨 FIRE ALERT',
+        body: `Critical fire detected! ${sensorData.name}: ${sensorData.value}${sensorData.unit}`,
+        data: {
+          type: 'fire_alert',
+          sensor: sensorData.name,
+          value: sensorData.value.toString(),
+          unit: sensorData.unit,
+          location: location || 'Unknown',
+          timestamp: new Date().toISOString(),
+        },
+      });
+    }
   }
 
   try {

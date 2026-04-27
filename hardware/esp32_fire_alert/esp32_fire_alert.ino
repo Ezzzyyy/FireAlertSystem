@@ -1,6 +1,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <ArduinoJson.h>
+#include <ArduinoJson.h> // verified
 #include <DHT.h>
 
 // -------- WiFi / API config --------
@@ -75,7 +75,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(ALERT_LED_PIN, OUTPUT);
-  pinMode(FLAME_DIGITAL_PIN, INPUT);
+  pinMode(FLAME_DIGITAL_PIN, INPUT_PULLUP);
   dht.begin();
 
   Serial.println("\n\n========== FIRE ALERT SYSTEM ==========");
@@ -147,7 +147,8 @@ void loop() {
 
   // Read sensors
   int smokeRaw = analogRead(SMOKE_ANALOG_PIN);
-  bool flameDetected = digitalRead(FLAME_DIGITAL_PIN) == HIGH;
+  int flameDigitalRaw = digitalRead(FLAME_DIGITAL_PIN);
+  bool flameDetected = flameDigitalRaw == HIGH; // This module appears to output HIGH when flame is present
   float temperature = dht.readTemperature();
 
   // Throttle logs to avoid flooding serial monitor.
@@ -155,6 +156,8 @@ void loop() {
     lastLogAt = millis();
     Serial.print("Smoke Sensor (Raw): ");
     Serial.println(smokeRaw);
+    Serial.print("Flame Digital Raw: ");
+    Serial.println(flameDigitalRaw);
     Serial.print("Flame Sensor Detected: ");
     Serial.println(flameDetected ? "YES" : "NO");
     Serial.print("Temperature (C): ");

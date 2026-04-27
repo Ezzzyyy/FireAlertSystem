@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSystemStore, loadPersistedState } from '../store/useSystemStore';
 import { API_BASE_URL } from '../constants/api';
+import { getExpoPushToken, setupNotificationListeners } from '../utils/notifications';
 
 // Responsive helper function
 const getResponsiveStyles = (width: number) => {
@@ -191,6 +192,46 @@ export default function Dashboard() {
     console.log('[Dashboard] Checking auth on mount...');
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    const registerPushToken = async () => {
+      if (!token) {
+        return;
+      }
+      const expoToken = await getExpoPushToken();
+      if (!expoToken) {
+        console.warn('[Push Register] No Expo push token available');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/fcm/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ fcmToken: expoToken }),
+        });
+
+        if (!response.ok) {
+          console.warn('[Push Register] Failed to register token', response.status);
+        } else {
+          console.log('[Push Register] Expo push token registered', expoToken);
+        }
+      } catch (error) {
+        console.error('[Push Register] Error registering push token:', error);
+      }
+    };
+
+    if (token) {
+      void registerPushToken();
+      const cleanupListeners = setupNotificationListeners();
+      return cleanupListeners;
+    }
+
+    return undefined;
+  }, [token]);
 
   // Fetch live sensor data from backend
   useEffect(() => {
