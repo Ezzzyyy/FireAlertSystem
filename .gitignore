@@ -22,3 +22,4 @@ dist/
 .env
 .env.local
 .env.*.local
+backend/serviceAccountKey.json
