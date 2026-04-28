@@ -16,6 +16,7 @@
         "backgroundColor": "#1a1a2e"
       },
       "package": "firealert.com",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "WAKE_LOCK",
