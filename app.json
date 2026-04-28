@@ -28,7 +28,7 @@
     "extra": {
       "apiBaseUrl": "https://firealertsystem-dcxc.onrender.com",
       "eas": {
-        "projectId": "e75efdd7-223c-4f8e-b533-d385af81b417"
+        "projectId": "a1d1f72ff8fae"
       }
     },
     "plugins": [
