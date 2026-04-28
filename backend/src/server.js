@@ -253,8 +253,8 @@ const getDefaultDashboardState = () => ({
 
 const SENSOR_THRESHOLDS = {
   fire: { warning: 65, critical: 85 },
-  smoke: { warning: 1200, critical: 1600 },
-  temperature: { warning: 38, critical: 55 },
+  smoke: { warning: 900, critical: 1200 },
+  temperature: { warning: 38, critical: 45 },
 };
 
 // Sensor validation and filtering
@@ -506,6 +506,16 @@ const addFcmTokenForUser = (email, token) => {
   writeFcmTokensStore(store);
 };
 
+const removeFcmTokensForUser = (email) => {
+  fcmTokens.delete(email);
+  // Persist to file
+  const store = {};
+  for (const [e, tokenSet] of fcmTokens.entries()) {
+    store[e] = [...tokenSet];
+  }
+  writeFcmTokensStore(store);
+};
+
 const getAllFcmTokens = () => {
   const tokens = [];
   for (const tokenSet of fcmTokens.values()) {
@@ -589,6 +599,15 @@ app.post('/auth/register', (req, res) => {
 
   users[email] = user;
   writeUsersStore(users);
+  
+  // Initialize user state with default values
+  const store = readStateStore();
+  if (!store[email]) {
+    store[email] = getDefaultDashboardState();
+    writeStateStore(store);
+    console.log(`[Backend Register] Initialized state for new user: ${email}`);
+  }
+  
   const token = createToken();
   sessions.set(token, email);
 
@@ -661,6 +680,10 @@ app.get('/auth/me', (req, res) => {
 app.post('/auth/logout', (req, res) => {
   const token = getTokenFromHeader(req.headers.authorization);
   if (token) {
+    const email = sessions.get(token);
+    if (email) {
+      removeFcmTokensForUser(email);
+    }
     sessions.delete(token);
   }
   return res.json({ success: true });
@@ -693,6 +716,7 @@ app.post('/fcm/test', requireAuth, async (req, res) => {
 const sendFireAlertNotification = async (sensorData, location) => {
   const allTokens = getAllFcmTokens();
   console.log(`[Push] Attempting to send alert. Total tokens: ${allTokens.length}`);
+  console.log(`[Push] Location being sent: "${location}"`);
   
   if (allTokens.length === 0) {
     const now = Date.now();
@@ -878,7 +902,9 @@ app.put('/state', requireAuth, (req, res) => {
   }
 
   const store = readStateStore();
+  const existingState = store[req.userEmail] || getDefaultDashboardState();
   store[req.userEmail] = {
+    ...existingState,
     ...incomingState,
     updatedAt: new Date().toISOString(),
   };
@@ -921,6 +947,7 @@ app.post('/hardware/telemetry', async (req, res) => {
     const fireSensor = nextSensors.find(s => s.kind === 'fire');
     if (fireSensor && (fireSensor.status === 'critical' || fireSensor.status === 'warning')) {
       if (now - lastAlertSentAt >= ALERT_COOLDOWN_MS) {
+        console.log(`[Alert] Sending notification for ${email} with location: ${current.systemLocation}`);
         await sendFireAlertNotification(fireSensor, current.systemLocation);
         lastAlertSentAt = now;
       }
