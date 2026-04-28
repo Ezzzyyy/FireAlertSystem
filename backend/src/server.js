@@ -713,6 +713,7 @@ const sendFireAlertNotification = async (sensorData, location) => {
     
     for (const token of allTokens) {
       const message = {
+        token: token,  // IMPORTANT: token must be at top level
         notification: {
           title: '🚨 FIRE ALERT - EVACUATE NOW',
           body: `CRITICAL: ${sensorData.name} at ${sensorData.value}${sensorData.unit} — Location: ${location || 'Unknown'}`,
