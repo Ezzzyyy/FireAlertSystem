@@ -200,7 +200,32 @@ export default function LocationPage() {
       provinceObj ? provinceObj.name : selectedProvince,
       regionObj ? regionObj.name : selectedRegion
     ].filter(Boolean).join(', ');
+    
     setSystemLocation(address);
+    
+    // Save to backend
+    const { token } = useAuthStore.getState();
+    if (token) {
+      try {
+        const response = await fetch('https://firealertsystem-dcxc.onrender.com/state', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            state: {
+              systemLocation: address,
+            },
+          }),
+        });
+        if (!response.ok) {
+          console.error('Failed to save location to backend');
+        }
+      } catch (error) {
+        console.error('Error saving location to backend:', error);
+      }
+    }
     
     router.back();
   };
