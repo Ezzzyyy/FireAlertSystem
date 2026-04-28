@@ -1,10 +1,16 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
-require('dotenv').config();
+
+console.log('[Server] Starting... Checking Firebase env vars');
+console.log('[Server] FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING');
+console.log('[Server] FIREBASE_PRIVATE_KEY:', process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'MISSING');
+console.log('[Server] FIREBASE_CLIENT_EMAIL:', process.env.FIREBASE_CLIENT_EMAIL ? 'SET' : 'MISSING');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
