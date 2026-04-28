@@ -116,12 +116,14 @@ const initializeFirestoreAdmin = () => {
           auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
           client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
         };
+        console.log('[Firebase] Initializing with env variables. Project:', serviceAccount.project_id);
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
         });
       } else {
         const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || path.join(__dirname, '../serviceAccountKey.json');
         const resolvedPath = path.resolve(serviceAccountPath);
+        console.log('[Firebase] Loading from file:', resolvedPath);
         const serviceAccount = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
@@ -130,9 +132,10 @@ const initializeFirestoreAdmin = () => {
     }
 
     firestoreAdminDb = admin.firestore();
+    console.log('[Firebase] Admin initialized successfully');
     return firestoreAdminDb;
   } catch (error) {
-    console.warn('Firestore Admin init failed. Telemetry will stay local only.', error.message);
+    console.error('[Firebase] Init failed:', error.message);
     firestoreUnavailable = true;
     return null;
   }
@@ -700,6 +703,7 @@ const sendFireAlertNotification = async (sensorData, location) => {
 
   try {
     const messaging = admin.messaging();
+    console.log('[Push] Firebase messaging initialized');
     
     for (const token of allTokens) {
       const message = {
@@ -731,14 +735,15 @@ const sendFireAlertNotification = async (sensorData, location) => {
       };
 
       try {
+        console.log(`[Push] Sending to token: ${token.slice(0, 20)}...`);
         const response = await messaging.send(message);
-        console.log(`[Push] FCM message sent to token ${token.slice(0, 20)}...: ${response}`);
+        console.log(`[Push] FCM message sent successfully: ${response}`);
       } catch (error) {
-        console.error(`[Push] Failed to send FCM message to token ${token.slice(0, 20)}...`, error.message);
+        console.error(`[Push] Failed to send FCM message:`, error.message);
       }
     }
   } catch (error) {
-    console.error('[Push] Failed to send FCM notifications:', error.message);
+    console.error('[Push] Failed to initialize messaging:', error.message);
   }
 };
 
