@@ -16,8 +16,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSystemStore } from '../store/useSystemStore';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../constants/firebaseConfig';
 import { Picker } from '@react-native-picker/picker';
 
 export default function LocationPage() {
@@ -203,22 +201,6 @@ export default function LocationPage() {
       regionObj ? regionObj.name : selectedRegion
     ].filter(Boolean).join(', ');
     setSystemLocation(address);
-    
-    // Save to Firestore if user is logged in
-    if (user?.id) {
-      try {
-        await setDoc(
-          doc(db, 'dashboardStates', user.id),
-          {
-            systemLocation: address,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
-      } catch (error) {
-        console.error('Failed to save location to Firestore:', error);
-      }
-    }
     
     router.back();
   };

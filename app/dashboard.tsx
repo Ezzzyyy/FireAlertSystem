@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
+import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../store/useAuthStore';
@@ -79,14 +80,6 @@ interface DashboardSensor {
   module: string;
 }
 
-interface EmergencyContact {
-  id: number;
-  name: string;
-  phone: string;
-  enabled: boolean;
-  warningSmsEnabled: boolean;
-}
-
 interface ActivitySensorItem {
   name: string;
   level: string;
@@ -141,21 +134,6 @@ const getAlertLevel = (sensors: DashboardSensor[]): 'critical' | 'warning' | 'no
   }
 };
 
-const generateSMSMessage = (sensor: DashboardSensor, status: 'warning' | 'critical', location: string): string => {
-  const timestamp = new Date().toLocaleString();
-  const sensorNames = {
-    fire: 'Fire Sensor',
-    smoke: 'Smoke Sensor',
-    heat: 'Heat Sensor',
-  };
-  
-  if (status === 'warning') {
-    return `⚠️ FIRE ALERT WARNING\nSensor: ${sensorNames[sensor.kind]}\nLevel: ${sensor.value}${sensor.unit}\nStatus: Elevated - Monitor\nTime: ${timestamp}\nLocation: ${location}\nSystem: Fire Alert IoT`;
-  } else {
-    return `🚨 EMERGENCY FIRE ALERT\nSensor: ${sensorNames[sensor.kind]}\nLevel: ${sensor.value}${sensor.unit}\nStatus: CRITICAL - EVACUATE NOW\nTime: ${timestamp}\nLocation: ${location}\nEmergency: 911\nSystem: Fire Alert IoT`;
-  }
-};
-
 const formatSensorDisplayName = (name: string) => name.replace(/\s*sensor$/i, '').trim();
 
 const createUniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -192,6 +170,22 @@ export default function Dashboard() {
     console.log('[Dashboard] Checking auth on mount...');
     checkAuth();
   }, [checkAuth]);
+
+  // Request notification permissions on mount
+  useEffect(() => {
+    const requestPermissions = async () => {
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          const { status: newStatus } = await Notifications.requestPermissionsAsync();
+          console.log('[Notifications] Permission status:', newStatus);
+        }
+      } catch (error) {
+        console.error('[Notifications] Failed to request permissions:', error);
+      }
+    };
+    requestPermissions();
+  }, []);
 
   useEffect(() => {
     const registerPushToken = async () => {
@@ -296,18 +290,11 @@ export default function Dashboard() {
   const [isAlertActive, setIsAlertActive] = useState(false);
   const [activities, setActivities] = useState<any[]>([]);
   const [showFullHistory, setShowFullHistory] = useState(false);
-  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
-  const [showContactModal, setShowContactModal] = useState(false);
-  const [contactInput, setContactInput] = useState({ name: '', phone: '' });
-  const [editingId, setEditingId] = useState<number | null>(null);
 
-  const [smsSent, setSmsSent] = useState(0);
   const [pushSent, setPushSent] = useState(0);
   const [uptime, setUptime] = useState('72h+');
   const [lastAlertTime, setLastAlertTime] = useState('No alerts');
-  const [smsPerAlert, setSmsPerAlert] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
-  const [showContactsInSettings, setShowContactsInSettings] = useState(false);
   // systemLocation now comes from Zustand store
 
   const glowAnim = useRef(new Animated.Value(0)).current;
@@ -382,11 +369,8 @@ export default function Dashboard() {
     sensors,
     isArmed,
     activities,
-    emergencyContacts,
-    smsSent,
     pushSent,
     lastAlertTime,
-    smsPerAlert,
     systemLocation,
   });
 
@@ -395,11 +379,8 @@ export default function Dashboard() {
     if (typeof state?.isArmed === 'boolean') setIsArmed(state.isArmed);
     // NEVER overwrite activities from backend - AsyncStorage is the source of truth
     console.log('[Apply State] Skipping activities from backend to preserve AsyncStorage data');
-    if (Array.isArray(state?.emergencyContacts)) setEmergencyContacts(state.emergencyContacts);
-    if (typeof state?.smsSent === 'number') setSmsSent(state.smsSent);
     if (typeof state?.pushSent === 'number') setPushSent(state.pushSent);
     if (typeof state?.lastAlertTime === 'string') setLastAlertTime(state.lastAlertTime);
-    if (typeof state?.smsPerAlert === 'number') setSmsPerAlert(state.smsPerAlert);
     if (typeof state?.systemLocation === 'string') setSystemLocation(state.systemLocation);
   };
 
@@ -478,9 +459,7 @@ export default function Dashboard() {
 
   const handleReset = () => {
     setActivities([]);
-    setSmsSent(0);
     setPushSent(0);
-    setSmsPerAlert(0);
     setLastAlertTime('No alerts');
     processedSensorsRef.current.clear();
   };
@@ -494,109 +473,11 @@ export default function Dashboard() {
     console.log('[Stop Alert] Alert stopped, isAlertActive:', false);
   };
 
-  const handleAddContact = () => {
-    if (contactInput.name && contactInput.phone) {
-      if (editingId) {
-        setEmergencyContacts(prev =>
-          prev.map(c => c.id === editingId ? { ...c, name: contactInput.name, phone: contactInput.phone } : c)
-        );
-      } else {
-        setEmergencyContacts(prev => [
-          ...prev,
-          { id: Date.now() + Math.floor(Math.random() * 1000), name: contactInput.name, phone: contactInput.phone, enabled: true, warningSmsEnabled: false }
-        ]);
-      }
-      setContactInput({ name: '', phone: '' });
-      setEditingId(null);
-      setShowContactModal(false);
-    }
-  };
-
   const handleDeleteContact = (id: number) => {
-    setEmergencyContacts(prev => prev.filter(c => c.id !== id));
+    // kept for potential future use
   };
 
-  const handleToggleWarningSms = (id: number) => {
-    setEmergencyContacts(prev => 
-      prev.map(c => c.id === id ? { ...c, warningSmsEnabled: !c.warningSmsEnabled } : c)
-    );
-  };
-
-  // WARNING: Send SMS only to selected contacts using multi-sensor detection logic
-  useEffect(() => {
-    if (!isArmed) {
-      return;
-    }
-
-    if (!isTelemetryFresh()) {
-      return;
-    }
-
-    const alertLevel = getAlertLevel(sensors);
-    const warningSensors = sensors.filter(sensor => sensor.status === 'warning');
-    const alertKey = `warning-${warningSensors.map(s => s.kind).sort().join('-')}`;
-    
-    console.log('[Warning Alert] Alert level:', alertLevel);
-    console.log('[Warning Alert] Alert key:', alertKey);
-    console.log('[Warning Alert] Processed:', processedSensorsRef.current.has(alertKey));
-    console.log('[Warning Alert] Sensors:', sensors.map(s => ({ name: s.name, status: s.status, value: s.value })));
-    
-    if (alertLevel === 'warning' && !processedSensorsRef.current.has(alertKey)) {
-      if (isAlertActive) {
-        setIsAlertActive(false);
-        void stopAlarmSound();
-      }
-
-      processedSensorsRef.current.add(alertKey);
-      
-      const timestamp = new Date().toLocaleTimeString();
-      const warningContacts = emergencyContacts.filter(contact => contact.warningSmsEnabled);
-      const warningSensors = sensors.filter(sensor => sensor.status === 'warning');
-      const smsMessage = generateSMSMessage(warningSensors[0] || sensors[0], 'warning', systemLocation);
-
-      console.log('[Warning Alert] Adding activity - Warning sensors:', warningSensors);
-
-      const date = new Date().toLocaleDateString();
-
-      if (warningContacts.length > 0) {
-        setSmsPerAlert(warningContacts.length);
-        setSmsSent(prev => prev + warningContacts.length);
-        // Create deep snapshot of all sensor values at time of alert
-        const sensorSnapshot = JSON.parse(JSON.stringify(sensors));
-        setActivities(prev => ([{
-          id: createUniqueId(),
-          time: timestamp,
-          date: date,
-          message: 'WARNING - LED only',
-          type: 'alert',
-          sensors: warningSensors.map(s => ({ name: s.name, level: `${s.value}${s.unit}` })),
-          location: systemLocation,
-          notifications: warningContacts.map(contact => ({
-            time: timestamp,
-            type: 'sms',
-            message: `SMS to ${contact.name}: ${smsMessage}`,
-          })),
-        },
-          ...prev,
-        ]));
-      } else {
-        setActivities(prev => ([{
-          id: createUniqueId(),
-          time: timestamp,
-          date: date,
-          message: 'WARNING - LED only',
-          type: 'alert',
-          sensors: warningSensors.map(s => ({ name: s.name, level: `${s.value}${s.unit}` })),
-          location: systemLocation,
-          notifications: [],
-        },
-          ...prev,
-        ]));
-      }
-    }
-  }, [sensors, isArmed, emergencyContacts, systemLocation]);
-
-  // CRITICAL: Trigger alarm + SMS using multi-sensor detection logic
+  // CRITICAL: Trigger alarm using multi-sensor detection logic
   useEffect(() => {
     if (!isArmed) {
       return;
@@ -618,9 +499,7 @@ export default function Dashboard() {
     if (alertLevel === 'critical' && !processedSensorsRef.current.has(alertKey) && !alertManuallyStoppedRef.current) {
       processedSensorsRef.current.add(alertKey);
       
-      const enabledContacts = emergencyContacts.filter(contact => contact.enabled);
       const criticalSensors = sensors.filter(sensor => sensor.status === 'critical');
-      const smsMessage = generateSMSMessage(criticalSensors[0] || sensors[0], 'critical', systemLocation);
 
       console.log('[Critical Alert] Adding activity - Critical sensors:', criticalSensors);
 
@@ -655,8 +534,6 @@ export default function Dashboard() {
 
       const date = new Date().toLocaleDateString();
 
-      setSmsPerAlert(enabledContacts.length);
-      setSmsSent(prev => prev + enabledContacts.length);
       setPushSent(prev => prev + 1);
       setActivities(prev => ([
         {
@@ -670,18 +547,13 @@ export default function Dashboard() {
           location: systemLocation,
           notifications: [
             { time: alertTimestamp, type: 'local', message: 'Local LED + Buzzer activated' },
-            ...enabledContacts.map(contact => ({
-              time: alertTimestamp,
-              type: 'sms',
-              message: `SMS to ${contact.name}: ${smsMessage}`,
-            })),
             { time: alertTimestamp, type: 'push', message: 'Push notification sent via Firebase' },
           ],
         },
         ...prev,
       ]));
     }
-  }, [sensors, isArmed, emergencyContacts]);
+  }, [sensors, isArmed]);
 
   useEffect(() => {
     if (isAlertActive) {
@@ -732,11 +604,6 @@ export default function Dashboard() {
               setSystemLocation(parsed.systemLocation);
               console.log('[Dashboard Load] Restored location:', parsed.systemLocation);
             }
-            if (Array.isArray(parsed.emergencyContacts)) {
-              setEmergencyContacts(parsed.emergencyContacts);
-              console.log('[Dashboard Load] Restored emergency contacts:', parsed.emergencyContacts);
-            }
-            if (typeof parsed.smsSent === 'number') setSmsSent(parsed.smsSent);
             if (typeof parsed.pushSent === 'number') setPushSent(parsed.pushSent);
             if (typeof parsed.lastAlertTime === 'string') setLastAlertTime(parsed.lastAlertTime);
             if (Array.isArray(parsed.activities)) {
@@ -744,10 +611,11 @@ export default function Dashboard() {
               console.log('[Dashboard Load] Restored activities:', parsed.activities.length);
             }
           } else {
-            console.log('[Dashboard Load] No saved state found');
           }
         } catch (error) {
           console.error('[Dashboard Load] Failed to load dashboard state:', error);
+          // Clear corrupted cache so it doesn't crash on next load
+          await AsyncStorage.removeItem(`dashboard-${user.id}`);
         }
       };
 
@@ -763,8 +631,6 @@ export default function Dashboard() {
       try {
         const stateToSave = {
           systemLocation,
-          emergencyContacts,
-          smsSent,
           pushSent,
           lastAlertTime,
           activities,
@@ -780,7 +646,7 @@ export default function Dashboard() {
     };
     
     saveState();
-  }, [systemLocation, emergencyContacts, smsSent, pushSent, lastAlertTime, activities, user?.id]);
+  }, [systemLocation, pushSent, lastAlertTime, activities, user?.id]);
 
   useEffect(() => {
     // Only load state if both token and user.email are present
@@ -818,11 +684,8 @@ export default function Dashboard() {
     sensors,
     isArmed,
     activities,
-    emergencyContacts,
-    smsSent,
     pushSent,
     lastAlertTime,
-    smsPerAlert,
     systemLocation,
   ]);
 
@@ -869,7 +732,6 @@ export default function Dashboard() {
                 <Text style={[styles.title, { fontSize: responsive.titleFontSize }]}>Fire Alert System</Text>
                 <Text style={styles.subtitle1}>IoT-Powered Multi-Channel</Text>
                 <Text style={styles.subtitle2}>Detection & Response</Text>
-                <Text style={styles.subtitle3}>ESP32 + Arduino IoT Cloud</Text>
               </View>
             </View>
           </View>
@@ -964,10 +826,6 @@ export default function Dashboard() {
                   <View key={activity.id} style={styles.alertCard}>
                     {activity.type === 'alert' ? (
                       <View style={[styles.alertTableRow, { gap: responsive.alertTableRowGap }]}>
-                        <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
-                          <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Date</Text>
-                          <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.date || '-'}</Text>
-                        </View>
                         <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
                           <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Time</Text>
                           <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.time}</Text>
@@ -1076,133 +934,14 @@ export default function Dashboard() {
 
             <View style={styles.statsBox}>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>SMS per Alert:</Text>
-                <Text style={styles.statValue}>{smsPerAlert}</Text>
-              </View>
-              <View style={styles.statRow}>
                 <Text style={styles.statLabel}>Last Alert:</Text>
                 <Text style={styles.statValue}>{lastAlertTime}</Text>
               </View>
             </View>
           </View>
 
-          <Text style={styles.footer}>Fire Alert System v2.0 • Powered by Expo + Arduino IoT Cloud</Text>
+          <Text style={styles.footer}>Fire Alert System v2.0</Text>
         </ScrollView>
-
-        {/* Contact Modal - For Settings */}
-        {showContactsInSettings && (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.contactsModalHeader}>
-                <Text style={styles.modalTitle}>Emergency Contacts</Text>
-                <TouchableOpacity onPress={() => {
-                  setShowContactsInSettings(false);
-                  setShowContactModal(false);
-                  setContactInput({ name: '', phone: '' });
-                  setEditingId(null);
-                }}>
-                  <Text style={styles.modalCloseBtnText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-
-              {!showContactModal ? (
-                <>
-                  <ScrollView style={styles.contactsListScroll}>
-                    {emergencyContacts.map((contact) => (
-                      <View key={contact.id} style={styles.contactItemModal}>
-                        <View style={styles.contactInfo}>
-                          <Text style={styles.contactName}>{contact.name}</Text>
-                          <Text style={styles.contactPhone}>{contact.phone}</Text>
-                          <View style={styles.contactWarningRow}>
-                            <Text style={styles.contactWarningLabel}>Send WARNING SMS:</Text>
-                            <Switch
-                              value={contact.warningSmsEnabled}
-                              onValueChange={() => handleToggleWarningSms(contact.id)}
-                              trackColor={{ false: '#333', true: '#ffa500' }}
-                              thumbColor={contact.warningSmsEnabled ? '#ff9500' : '#666'}
-                            />
-                          </View>
-                        </View>
-                        <View style={styles.contactActions}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setContactInput({ name: contact.name, phone: contact.phone });
-                              setEditingId(contact.id);
-                              setShowContactModal(true);
-                            }}
-                            style={styles.editBtn}
-                          >
-                            <Text style={styles.editBtnText}>Edit</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => handleDeleteContact(contact.id)}
-                            style={styles.deleteBtnModal}
-                          >
-                            <Text style={styles.deleteBtnText}>Delete</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </ScrollView>
-
-                  <TouchableOpacity
-                    style={styles.addContactModalBtn}
-                    onPress={() => {
-                      setContactInput({ name: '', phone: '' });
-                      setEditingId(null);
-                      setShowContactModal(true);
-                    }}
-                  >
-                    <Text style={styles.addContactModalBtnText}>+ Add Contact</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Name</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="e.g., Fire Department"
-                      placeholderTextColor="#666"
-                      value={contactInput.name}
-                      onChangeText={(text) => setContactInput(prev => ({ ...prev, name: text }))}
-                    />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Phone Number</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="+63-9XX-XXX-XXXX"
-                      placeholderTextColor="#666"
-                      value={contactInput.phone}
-                      onChangeText={(text) => setContactInput(prev => ({ ...prev, phone: text }))}
-                    />
-                  </View>
-
-                  <View style={styles.modalButtonGroup}>
-                    <TouchableOpacity style={styles.modalButtonSave} onPress={() => {
-                      handleAddContact();
-                      setShowContactModal(false);
-                    }}>
-                      <Text style={styles.modalButtonText}>Save</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.modalButtonCancel}
-                      onPress={() => {
-                        setShowContactModal(false);
-                        setContactInput({ name: '', phone: '' });
-                        setEditingId(null);
-                      }}
-                    >
-                      <Text style={styles.modalButtonCancelText}>Cancel</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </View>
-          </View>
-        )}
 
         {/* Full History Modal */}
         {showFullHistory && (
@@ -1221,10 +960,6 @@ export default function Dashboard() {
                     <View key={activity.id} style={styles.historyCard}>
                       {activity.type === 'alert' ? (
                         <View style={[styles.alertTableRow, { gap: responsive.alertTableRowGap }]}>
-                          <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
-                            <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Date</Text>
-                            <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.date || '-'}</Text>
-                          </View>
                           <View style={[styles.alertTableColumn, { minWidth: responsive.alertTableColumnMinWidth }]}>
                             <Text style={[styles.alertTableLabel, { fontSize: responsive.alertTableLabelFontSize }]}>Time</Text>
                             <Text style={[styles.alertTableValue, { fontSize: responsive.alertTableValueFontSize }]}>{activity.time}</Text>
@@ -1298,7 +1033,7 @@ export default function Dashboard() {
         )}
 
         {/* Settings Modal */}
-        {showSettings && !showContactsInSettings && (
+        {showSettings && (
           <View style={styles.settingsModalOverlay}>
             <View style={styles.settingsModalContent}>
               <View style={styles.settingsModalHeader}>
@@ -1317,13 +1052,6 @@ export default function Dashboard() {
               >
                 <Text style={styles.settingsMenuItemText}>Location</Text>
                 <Text style={styles.settingsMenuItemSubtext}>{systemLocation}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.settingsMenuItem}
-                onPress={() => setShowContactsInSettings(true)}
-              >
-                <Text style={styles.settingsMenuItemText}>Emergency Contacts</Text>
               </TouchableOpacity>
 
               <TouchableOpacity

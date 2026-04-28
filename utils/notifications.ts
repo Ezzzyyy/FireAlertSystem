@@ -10,6 +10,19 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Set up Android high-priority alarm channel
+if (Platform.OS === 'android') {
+  Notifications.setNotificationChannelAsync('fire-alert', {
+    name: 'Fire Alert',
+    importance: Notifications.AndroidImportance.MAX,
+    sound: 'default',
+    vibrationPattern: [0, 500, 250, 500, 250, 500],
+    lightColor: '#FF0000',
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    bypassDnd: true,   // bypasses Do Not Disturb on Android
+  });
+}
+
 // Request notification permissions
 export const requestNotificationPermissions = async () => {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -36,7 +49,7 @@ export const getExpoPushToken = async () => {
   }
 
   const token = await Notifications.getExpoPushTokenAsync({
-    projectId: 'c5dcd1f1-9881-443b-a7f9-c9f1864e5411',
+    projectId: 'e75efdd7-223c-4f8e-b533-d385af81b417',
   });
 
   return token.data;

@@ -235,13 +235,10 @@ const getDefaultDashboardState = () => ({
   ],
   isArmed: true,
   activities: [],
-  emergencyContacts: [],
-  smsSent: 0,
   pushSent: 0,
   powerMode: 'Ultra-Low',
   battery: 85,
   lastAlertTime: 'No alerts',
-  smsPerAlert: 0,
   systemLocation: 'Your Building',
 });
 
@@ -458,13 +455,44 @@ const applyTelemetryToSensors = (existingSensors, telemetry) => {
 let latestHardwareTelemetry = null;
 
 // Store FCM tokens for push notifications. Support multiple devices per user.
-const fcmTokens = new Map(); // email -> Set<ExpoPushToken>
+const FCM_TOKENS_FILE = path.join(DATA_DIR, 'fcm-tokens.json');
+
+const readFcmTokensStore = () => {
+  try {
+    if (!fs.existsSync(FCM_TOKENS_FILE)) return {};
+    const raw = fs.readFileSync(FCM_TOKENS_FILE, 'utf8');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeFcmTokensStore = (store) => {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(FCM_TOKENS_FILE, JSON.stringify(store, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('Failed to persist FCM tokens:', e.message);
+  }
+};
+
+// Load persisted tokens into memory on startup
+const fcmTokensRaw = readFcmTokensStore(); // { email: [token1, token2] }
+const fcmTokens = new Map(
+  Object.entries(fcmTokensRaw).map(([email, tokens]) => [email, new Set(tokens)])
+);
 let lastNoTokenLogAt = 0;
 
 const addFcmTokenForUser = (email, token) => {
   const existing = fcmTokens.get(email) || new Set();
   existing.add(token);
   fcmTokens.set(email, existing);
+  // Persist to file
+  const store = {};
+  for (const [e, tokenSet] of fcmTokens.entries()) {
+    store[e] = [...tokenSet];
+  }
+  writeFcmTokensStore(store);
 };
 
 const getAllFcmTokens = () => {
@@ -637,8 +665,24 @@ app.post('/fcm/register', requireAuth, (req, res) => {
   return res.json({ success: true });
 });
 
+// Test endpoint to manually trigger a push notification
+app.post('/fcm/test', requireAuth, async (req, res) => {
+  const allTokens = getAllFcmTokens();
+  console.log(`[Push Test] Tokens available: ${allTokens.length}`, allTokens);
+  if (allTokens.length === 0) {
+    return res.status(400).json({ message: 'No FCM tokens registered. Open the app first to register.' });
+  }
+  await sendFireAlertNotification(
+    { name: 'Fire Sensor', value: 90, unit: '%' },
+    'Test Location'
+  );
+  return res.json({ success: true, tokenCount: allTokens.length });
+});
+
 const sendFireAlertNotification = async (sensorData, location) => {
-  // Send to all registered Expo push tokens
+  const allTokens = getAllFcmTokens();
+  console.log(`[Push] Attempting to send alert. Total tokens: ${allTokens.length}`);
+  
   if (fcmTokens.size === 0) {
     const now = Date.now();
     if (now - lastNoTokenLogAt >= 60000) {
@@ -653,9 +697,15 @@ const sendFireAlertNotification = async (sensorData, location) => {
     for (const token of tokenSet) {
       messages.push({
         to: token,
-        sound: 'default',
-        title: '🚨 FIRE ALERT',
-        body: `Critical fire detected! ${sensorData.name}: ${sensorData.value}${sensorData.unit}`,
+        sound: {
+          name: 'default',
+          critical: true,   // bypasses silent/DND on iOS
+          volume: 1.0,
+        },
+        priority: 'high',
+        channelId: 'fire-alert',  // Android high-priority channel
+        title: '🚨 FIRE ALERT - EVACUATE NOW',
+        body: `CRITICAL: ${sensorData.name} at ${sensorData.value}${sensorData.unit} — Location: ${location || 'Unknown'}`,
         data: {
           type: 'fire_alert',
           sensor: sensorData.name,
@@ -664,6 +714,9 @@ const sendFireAlertNotification = async (sensorData, location) => {
           location: location || 'Unknown',
           timestamp: new Date().toISOString(),
         },
+        ttl: 60,             // deliver within 60 seconds or drop
+        expiration: Math.floor(Date.now() / 1000) + 60,
+        badge: 1,
       });
     }
   }
@@ -671,9 +724,7 @@ const sendFireAlertNotification = async (sensorData, location) => {
   try {
     const response = await fetch('https://exp.host/--/api/v2/push/send', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(messages),
     });
     const result = await response.json();
