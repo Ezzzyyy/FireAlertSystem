@@ -462,6 +462,8 @@ const applyTelemetryToSensors = (existingSensors, telemetry) => {
 };
 
 let latestHardwareTelemetry = null;
+let lastAlertSentAt = 0;
+const ALERT_COOLDOWN_MS = 5000; // Only send one alert every 5 seconds
 
 // Store FCM tokens for push notifications. Support multiple devices per user.
 const FCM_TOKENS_FILE = path.join(DATA_DIR, 'fcm-tokens.json');
@@ -914,10 +916,14 @@ app.post('/hardware/telemetry', async (req, res) => {
     };
     lastSensorsSnapshot = nextSensors;
 
-    // Check for critical fire and send FCM notification
+    // Check for critical fire and send FCM notification (with cooldown to prevent spam)
+    const now = Date.now();
     const fireSensor = nextSensors.find(s => s.kind === 'fire');
     if (fireSensor && (fireSensor.status === 'critical' || fireSensor.status === 'warning')) {
-      await sendFireAlertNotification(fireSensor, current.systemLocation);
+      if (now - lastAlertSentAt >= ALERT_COOLDOWN_MS) {
+        await sendFireAlertNotification(fireSensor, current.systemLocation);
+        lastAlertSentAt = now;
+      }
     }
   }
   writeStateStore(store);
