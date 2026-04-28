@@ -701,56 +701,47 @@ const sendFireAlertNotification = async (sensorData, location) => {
     return;
   }
 
-  const db = initializeFirestoreAdmin();
-  if (!db) {
-    console.error('[Push] Firebase Admin not initialized, cannot send FCM messages');
-    return;
+  const messages = [];
+  for (const token of allTokens) {
+    messages.push({
+      to: token,
+      sound: 'default',
+      title: '🚨 FIRE ALERT - EVACUATE NOW',
+      body: `CRITICAL: ${sensorData.name} at ${sensorData.value}${sensorData.unit} — Location: ${location || 'Unknown'}`,
+      data: {
+        type: 'fire_alert',
+        sensor: sensorData.name,
+        value: sensorData.value.toString(),
+        unit: sensorData.unit,
+        location: location || 'Unknown',
+        timestamp: new Date().toISOString(),
+      },
+      priority: 'high',
+      channelId: 'fire-alert',
+    });
   }
 
   try {
-    const messaging = admin.messaging();
-    console.log('[Push] Firebase messaging initialized');
+    console.log(`[Push] Sending ${messages.length} messages via Expo API`);
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(messages),
+    });
+    const result = await response.json();
+    console.log('[Push] Expo API response:', JSON.stringify(result));
     
-    for (const token of allTokens) {
-      const message = {
-        token: token,  // IMPORTANT: token must be at top level
-        notification: {
-          title: '🚨 FIRE ALERT - EVACUATE NOW',
-          body: `CRITICAL: ${sensorData.name} at ${sensorData.value}${sensorData.unit} — Location: ${location || 'Unknown'}`,
-        },
-        data: {
-          type: 'fire_alert',
-          sensor: sensorData.name,
-          value: sensorData.value.toString(),
-          unit: sensorData.unit,
-          location: location || 'Unknown',
-          timestamp: new Date().toISOString(),
-        },
-        android: {
-          priority: 'high',
-          notification: {
-            sound: 'default',
-            channelId: 'fire-alert',
-            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-          },
-        },
-        webpush: {
-          headers: {
-            TTL: '60',
-          },
-        },
-      };
-
-      try {
-        console.log(`[Push] Sending to token: ${token.slice(0, 20)}...`);
-        const response = await messaging.send(message);
-        console.log(`[Push] FCM message sent successfully: ${response}`);
-      } catch (error) {
-        console.error(`[Push] Failed to send FCM message:`, error.message);
-      }
+    if (result.data) {
+      result.data.forEach((item, idx) => {
+        if (item.status === 'ok') {
+          console.log(`[Push] Message ${idx} sent successfully`);
+        } else {
+          console.error(`[Push] Message ${idx} failed:`, item.message);
+        }
+      });
     }
   } catch (error) {
-    console.error('[Push] Failed to initialize messaging:', error.message);
+    console.error('[Push] Failed to send via Expo API:', error.message);
   }
 };
 
