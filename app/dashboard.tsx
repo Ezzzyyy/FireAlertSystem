@@ -87,8 +87,8 @@ interface ActivitySensorItem {
 
 const SENSOR_THRESHOLDS: Record<SensorKind, { warning: number; critical: number }> = {
   fire: { warning: 65, critical: 85 },
-  smoke: { warning: 1200, critical: 1600 },
-  heat: { warning: 38, critical: 55 },
+  smoke: { warning: 900, critical: 1200 },
+  heat: { warning: 38, critical: 45 },
 };
 
 const getSensorStatus = (kind: SensorKind, value: number): SensorStatus => {
@@ -153,7 +153,7 @@ export default function Dashboard() {
 
   const [sensors, setSensors] = useState<DashboardSensor[]>([
     { id: 2, kind: 'fire', name: 'Fire Sensor', value: 0, unit: '%', status: getSensorStatus('fire', 0), module: 'IR Fire Module' },
-    { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: 1, unit: 'ppm', status: getSensorStatus('smoke', 1), module: 'MQ-2/MQ-135' },
+    { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: 1, unit: 'raw', status: getSensorStatus('smoke', 1), module: 'MQ-2/MQ-135' },
     { id: 3, kind: 'heat', name: 'Heat Sensor', value: 22.5, unit: '°C', status: getSensorStatus('heat', 22.5), module: 'DHT22' },
   ]);
   const latestTelemetryAtRef = useRef<number | null>(null);
@@ -241,7 +241,7 @@ export default function Dashboard() {
           // Always update sensors to show live data
           setSensors([
             { id: 2, kind: 'fire', name: 'Fire Sensor', value: fire, unit: '%', status: getSensorStatus('fire', fire), module: 'IR Fire Module' },
-            { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: smoke, unit: 'ppm', status: getSensorStatus('smoke', smoke), module: 'MQ-2/MQ-135' },
+            { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: smoke, unit: 'raw', status: getSensorStatus('smoke', smoke), module: 'MQ-2/MQ-135' },
             { id: 3, kind: 'heat', name: 'Heat Sensor', value: heat, unit: '°C', status: getSensorStatus('heat', heat), module: 'DHT22' },
           ]);
 
