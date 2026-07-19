@@ -350,41 +350,38 @@ const getSensorStatus = (kind, value) => {
 };
 
 const normalizeHardwareTelemetry = (payload) => {
-  const firePercentDirect = toFiniteNumber(payload.firePercent ?? payload.fire ?? payload.fire_value);
-  const smokePercentDirect = toFiniteNumber(payload.smokePercent ?? payload.smokePpm ?? payload.smoke_value);
+  // Arduino sends:
+  // fire: 0 or 100 (from flameDetected boolean)
+  // flameDetected: true/false (digital flame sensor)
+  // smoke: raw ADC value (0-4095)
+  // heat: temperature in Celsius
+  // deviceId: string
+
   const heatDirect = toFiniteNumber(payload.heatC ?? payload.heat ?? payload.temperature ?? payload.tempC);
 
-  const fireAnalog = toFiniteNumber(payload.fireAnalog ?? payload.flameRaw ?? payload.flameAnalog);
-  const smokeAnalog = toFiniteNumber(payload.smokeAnalog ?? payload.smoke ?? payload.mq2Raw ?? payload.mq135Raw);
-  const digitalFire = toBoolean(payload.fireDigital ?? payload.flameDetected ?? payload.flameDigital);
+  // Fire: prefer flameDetected boolean, fall back to fire percent
+  const digitalFire = toBoolean(payload.flameDetected ?? payload.fireDigital ?? payload.flameDigital);
+  const firePercentDirect = toFiniteNumber(payload.firePercent ?? payload.fire_value);
 
   let firePercent = null;
-  // Priority: fireAnalog > digitalFire > firePercentDirect
-  if (fireAnalog != null) {
-    // Many flame sensors are inverse: lower analog means stronger flame signal.
-    firePercent = ((4095 - clamp(fireAnalog, 0, 4095)) / 4095) * 100;
-  } else if (digitalFire != null) {
+  if (digitalFire != null) {
     firePercent = digitalFire ? 100 : 0;
   } else if (firePercentDirect != null) {
     firePercent = firePercentDirect;
   }
 
-  let smokePercent = smokePercentDirect;
-  let smokeRaw = smokeAnalog; // Keep raw value for dashboard
-  if (smokePercent == null && smokeAnalog != null) {
-    // Map raw MQ analog values to a simple 0..100 smoke intensity scale.
-    smokePercent = (clamp(smokeAnalog, 0, 4095) / 4095) * 100;
-  }
+  // Smoke: always treat payload.smoke as raw ADC value
+  const smokeRaw = toFiniteNumber(payload.smoke ?? payload.smokeAnalog ?? payload.mq2Raw ?? payload.mq135Raw);
 
   const heatC = heatDirect;
 
-  if (firePercent == null && smokePercent == null && heatC == null) {
+  if (firePercent == null && smokeRaw == null && heatC == null) {
     return null;
   }
 
   return {
     fire: firePercent == null ? null : clamp(firePercent, 0, 100),
-    smoke: smokeRaw == null ? null : clamp(smokeRaw, 0, 4095), // Send raw value
+    smoke: smokeRaw == null ? null : clamp(smokeRaw, 0, 4095), // Raw ADC value (0-4095)
     heat: heatC == null ? null : clamp(heatC, -20, 120),
     deviceId: typeof payload.deviceId === 'string' ? payload.deviceId : 'unknown-device',
     receivedAt: new Date().toISOString(),
