@@ -5,7 +5,8 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
 
 console.log('[Server] Starting... Checking Firebase env vars');
 console.log('[Server] FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING');
@@ -17,17 +18,55 @@ const PORT = process.env.PORT || 4000;
 const DEVICE_API_KEY = process.env.DEVICE_API_KEY || 'dev-device-key';
 const ENABLE_FIRESTORE_SYNC = process.env.ENABLE_FIRESTORE_SYNC === 'true';
 
-// Email configuration
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'Fire Alert System <onboarding@resend.dev>';
+// Gmail OAuth configuration
+const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID;
+const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
+const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
+const EMAIL_FROM = process.env.EMAIL_FROM || 'queenhezekiah04@gmail.com';
 
-let resend = null;
-if (RESEND_API_KEY) {
-  resend = new Resend(RESEND_API_KEY);
-  console.log('[Email] Resend initialized successfully');
-} else {
-  console.warn('[Email] Resend API key not configured. OTP will be logged to console only.');
-}
+let emailTransporter = null;
+
+const initializeEmailTransporter = () => {
+  if (emailTransporter) {
+    return emailTransporter;
+  }
+
+  if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
+    console.warn('[Email] Gmail OAuth not configured. OTP will be logged to console only.');
+    return null;
+  }
+
+  try {
+    const OAuth2 = google.auth.OAuth2;
+    const oauth2Client = new OAuth2(
+      GMAIL_CLIENT_ID,
+      GMAIL_CLIENT_SECRET,
+      'https://developers.google.com/oauthplayground'
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: GMAIL_REFRESH_TOKEN
+    });
+
+    emailTransporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: EMAIL_FROM,
+        clientId: GMAIL_CLIENT_ID,
+        clientSecret: GMAIL_CLIENT_SECRET,
+        refreshToken: GMAIL_REFRESH_TOKEN,
+        accessToken: oauth2Client.getAccessToken()
+      }
+    });
+    
+    console.log('[Email] Gmail OAuth transporter initialized successfully');
+    return emailTransporter;
+  } catch (error) {
+    console.warn('[Email] Failed to initialize Gmail OAuth:', error.message);
+    return null;
+  }
+};
 
 const validateEmailWithAPI = async (email) => {
   // List of common disposable email domains
@@ -775,12 +814,13 @@ app.post('/auth/send-otp', async (req, res) => {
     expiresAt: Date.now() + 5 * 60 * 1000,
   });
 
-  // Try to send email with Resend
+  // Try to send email with Gmail OAuth
   let emailSent = false;
+  const transporter = initializeEmailTransporter();
   
-  if (resend) {
+  if (transporter) {
     try {
-      const { data, error } = await resend.emails.send({
+      await transporter.sendMail({
         from: EMAIL_FROM,
         to: email,
         subject: 'Fire Alert System - OTP Verification',
@@ -796,16 +836,10 @@ app.post('/auth/send-otp', async (req, res) => {
           </div>
         `,
       });
-      
-      if (error) {
-        console.error('[Resend] Failed to send email:', error);
-        emailSent = false;
-      } else {
-        console.log(`[Resend] OTP email sent to ${email}`, data);
-        emailSent = true;
-      }
+      console.log(`[Gmail] OTP email sent to ${email}`);
+      emailSent = true;
     } catch (error) {
-      console.error('[Resend] Exception:', error.message);
+      console.error('[Gmail] Failed to send email:', error.message);
       emailSent = false;
     }
   }
