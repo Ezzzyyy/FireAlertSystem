@@ -5,7 +5,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
-const sgMail = require('@sendgrid/mail');
+const { Resend } = require('resend');
 
 console.log('[Server] Starting... Checking Firebase env vars');
 console.log('[Server] FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING');
@@ -18,14 +18,15 @@ const DEVICE_API_KEY = process.env.DEVICE_API_KEY || 'dev-device-key';
 const ENABLE_FIRESTORE_SYNC = process.env.ENABLE_FIRESTORE_SYNC === 'true';
 
 // Email configuration
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@firealert.com';
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM || 'Fire Alert System <onboarding@resend.dev>';
 
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-  console.log('[Email] SendGrid initialized successfully');
+let resend = null;
+if (RESEND_API_KEY) {
+  resend = new Resend(RESEND_API_KEY);
+  console.log('[Email] Resend initialized successfully');
 } else {
-  console.warn('[Email] SendGrid API key not configured. OTP will be logged to console only.');
+  console.warn('[Email] Resend API key not configured. OTP will be logged to console only.');
 }
 
 const validateEmailWithAPI = async (email) => {
@@ -774,14 +775,14 @@ app.post('/auth/send-otp', async (req, res) => {
     expiresAt: Date.now() + 5 * 60 * 1000,
   });
 
-  // Try to send email with SendGrid
+  // Try to send email with Resend
   let emailSent = false;
   
-  if (SENDGRID_API_KEY) {
+  if (resend) {
     try {
-      const msg = {
-        to: email,
+      const { data, error } = await resend.emails.send({
         from: EMAIL_FROM,
+        to: email,
         subject: 'Fire Alert System - OTP Verification',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -794,16 +795,17 @@ app.post('/auth/send-otp', async (req, res) => {
             <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
           </div>
         `,
-      };
+      });
       
-      await sgMail.send(msg);
-      console.log(`[SendGrid] OTP email sent to ${email}`);
-      emailSent = true;
-    } catch (error) {
-      console.error('[SendGrid] Failed to send email:', error.message);
-      if (error.response) {
-        console.error('[SendGrid] Error details:', error.response.body);
+      if (error) {
+        console.error('[Resend] Failed to send email:', error);
+        emailSent = false;
+      } else {
+        console.log(`[Resend] OTP email sent to ${email}`, data);
+        emailSent = true;
       }
+    } catch (error) {
+      console.error('[Resend] Exception:', error.message);
       emailSent = false;
     }
   }
