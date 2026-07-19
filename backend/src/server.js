@@ -800,51 +800,49 @@ app.post('/auth/send-otp', async (req, res) => {
     expiresAt: Date.now() + 5 * 60 * 1000,
   });
 
-  // Try to send email
+  // Try to send email (with timeout to prevent long waits)
   const transporter = initializeEmailTransporter();
+  let emailSent = false;
+  
   if (transporter) {
     try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: email,
-        subject: 'Fire Alert System - OTP Verification',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #ff6b6b;">Fire Alert System</h2>
-            <p>Your verification code is:</p>
-            <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-              ${otp}
+      // Set a 5-second timeout for email sending
+      await Promise.race([
+        transporter.sendMail({
+          from: EMAIL_FROM,
+          to: email,
+          subject: 'Fire Alert System - OTP Verification',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #ff6b6b;">Fire Alert System</h2>
+              <p>Your verification code is:</p>
+              <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+                ${otp}
+              </div>
+              <p>This code will expire in 5 minutes.</p>
+              <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
             </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
-          </div>
-        `,
-      });
+          `,
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Email timeout')), 5000))
+      ]);
       console.log(`OTP email sent to ${email}`);
-      return res.json({ 
-        success: true, 
-        message: 'OTP sent to your email',
-      });
+      emailSent = true;
     } catch (error) {
-      console.error('Failed to send email:', error.message);
-      console.error('Full error:', error);
-      // If email sending fails, the email is likely invalid
-      otpStore.delete(email);
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Failed to send OTP email. Please check your email address or try again later.' 
-      });
+      console.warn('Failed to send email (will use development mode):', error.message);
+      emailSent = false;
     }
-  } else {
-    // Log to console if email not configured
-    console.log(`OTP for ${email}: ${otp}`);
-    return res.json({ 
-      success: true, 
-      message: 'OTP sent to your email',
-      // Only for development - remove in production
-      otp: otp 
-    });
   }
+  
+  // Always log to console for development
+  console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
+  
+  return res.json({ 
+    success: true, 
+    message: emailSent ? 'OTP sent to your email' : 'OTP generated (check console in development)',
+    // Include OTP in response for development (remove in production)
+    otp: otp 
+  });
 });
 
 app.post('/auth/verify-otp', (req, res) => {

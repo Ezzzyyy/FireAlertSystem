@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSystemStore } from '../store/useSystemStore';
 import { Picker } from '@react-native-picker/picker';
@@ -207,7 +208,8 @@ export default function LocationPage() {
     const { token } = useAuthStore.getState();
     if (token) {
       try {
-        const response = await fetch('https://firealertsystem-dcxc.onrender.com/state', {
+        const apiUrl = Constants.expoConfig?.extra?.apiBaseUrl || 'https://firealertsystem-pzjt.onrender.com';
+        const response = await fetch(`${apiUrl}/state`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

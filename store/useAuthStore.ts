@@ -39,7 +39,9 @@ const AUTH_STORAGE_KEY = 'fas_auth_session';
 const REQUEST_TIMEOUT_MS = 10000;
 
 const getApiUrl = () => {
-  const apiUrl = Constants.expoConfig?.extra?.apiBaseUrl || 'https://firealertsystem-dcxc.onrender.com';
+  const apiUrl = Constants.expoConfig?.extra?.apiBaseUrl || 'https://firealertsystem-pzjt.onrender.com';
+  console.log('[getApiUrl] API URL:', apiUrl);
+  console.log('[getApiUrl] Constants.expoConfig?.extra:', Constants.expoConfig?.extra);
   return apiUrl;
 };
 
@@ -84,13 +86,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const apiUrl = getApiUrl();
+      console.log('[register] Using API URL:', apiUrl);
+      console.log('[register] Registering user:', email);
+      
       const response = await fetch(`${apiUrl}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),
         signal: AbortSignal.timeout ? AbortSignal.timeout(REQUEST_TIMEOUT_MS) : undefined,
       });
+      
+      console.log('[register] Response status:', response.status);
       const data = await response.json();
+      console.log('[register] Response data:', data);
+      
       if (!response.ok) {
         throw new Error(data.message || 'Registration failed');
       }
@@ -104,6 +113,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user, token, isAuthenticated: true, isLoading: false, error: null });
       return { success: true };
     } catch (error: any) {
+      console.error('[register] Error:', error);
       set({ isLoading: false, error: error.message || 'Registration failed' });
       return { success: false, message: error.message || 'Registration failed' };
     }
@@ -113,15 +123,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const apiUrl = getApiUrl();
+      console.log('[sendOtp] Using API URL:', apiUrl);
+      console.log('[sendOtp] Sending OTP request for:', email);
+      
       const response = await fetch(`${apiUrl}/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+      
+      console.log('[sendOtp] Response status:', response.status);
       const data = await response.json();
+      console.log('[sendOtp] Response data:', data);
+      
       set({ isLoading: false, error: null });
       return { success: data.success, message: data.message, otp: data.otp };
     } catch (error: any) {
+      console.error('[sendOtp] Error:', error);
       set({ isLoading: false, error: error.message || 'Failed to send OTP' });
       return { success: false, message: error.message || 'Failed to send OTP' };
     }

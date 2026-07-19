@@ -252,6 +252,8 @@ export default function RegisterPage() {
                     }}
                     editable={!isLoading}
                     autoCapitalize="words"
+                    nativeID="firstName"
+                    accessibilityLabel="First Name"
                   />
                   {firstNameError ? <Text style={styles.errorText}>{firstNameError}</Text> : null}
                 </View>
@@ -267,6 +269,8 @@ export default function RegisterPage() {
                     editable={!isLoading}
                     autoCapitalize="characters"
                     maxLength={1}
+                    nativeID="middleInitial"
+                    accessibilityLabel="Middle Initial"
                   />
                 </View>
 
@@ -283,6 +287,8 @@ export default function RegisterPage() {
                     }}
                     editable={!isLoading}
                     autoCapitalize="words"
+                    nativeID="lastName"
+                    accessibilityLabel="Last Name"
                   />
                   {lastNameError ? <Text style={styles.errorText}>{lastNameError}</Text> : null}
                 </View>
@@ -301,6 +307,8 @@ export default function RegisterPage() {
                     editable={!isLoading}
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    nativeID="email"
+                    accessibilityLabel="Email"
                   />
                   {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
                 </View>
@@ -319,6 +327,8 @@ export default function RegisterPage() {
                       }}
                       editable={!isLoading}
                       secureTextEntry={!showPassword}
+                      nativeID="password"
+                      accessibilityLabel="Password"
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
@@ -344,6 +354,8 @@ export default function RegisterPage() {
                       }}
                       editable={!isLoading}
                       secureTextEntry={!showPassword}
+                      nativeID="confirmPassword"
+                      accessibilityLabel="Confirm Password"
                     />
                   </View>
                   {confirmPasswordError ? <Text style={styles.errorText}>{confirmPasswordError}</Text> : null}
@@ -377,6 +389,8 @@ export default function RegisterPage() {
                     editable={!isLoading}
                     keyboardType="number-pad"
                     maxLength={6}
+                    nativeID="otp"
+                    accessibilityLabel="OTP Code"
                   />
                 </View>
 
