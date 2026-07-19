@@ -12,6 +12,33 @@ console.log('[Server] FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? '
 console.log('[Server] FIREBASE_PRIVATE_KEY:', process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'MISSING');
 console.log('[Server] FIREBASE_CLIENT_EMAIL:', process.env.FIREBASE_CLIENT_EMAIL ? 'SET' : 'MISSING');
 
+// Initialize Firebase Admin immediately at startup
+try {
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY) {
+    const serviceAccount = {
+      type: "service_account",
+      project_id: process.env.FIREBASE_PROJECT_ID,
+      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+      private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      client_id: process.env.FIREBASE_CLIENT_ID,
+      auth_uri: process.env.FIREBASE_AUTH_URI,
+      token_uri: process.env.FIREBASE_TOKEN_URI,
+      auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
+      client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+    };
+    console.log('[Firebase] Initializing with env variables. Project:', serviceAccount.project_id);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log('[Firebase] Admin initialized successfully');
+  } else {
+    console.error('[Firebase] Missing required environment variables for Firebase initialization');
+  }
+} catch (error) {
+  console.error('[Firebase] Failed to initialize:', error.message);
+}
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 const DEVICE_API_KEY = process.env.DEVICE_API_KEY || 'dev-device-key';
@@ -83,41 +110,18 @@ const initializeFirestoreAdmin = () => {
   }
 
   try {
+    // Firebase Admin should already be initialized at startup
     if (admin.apps.length === 0) {
-      if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY) {
-        // Use environment variables for service account
-        const serviceAccount = {
-          type: "service_account",
-          project_id: process.env.FIREBASE_PROJECT_ID,
-          private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-          private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-          client_email: process.env.FIREBASE_CLIENT_EMAIL,
-          client_id: process.env.FIREBASE_CLIENT_ID,
-          auth_uri: process.env.FIREBASE_AUTH_URI,
-          token_uri: process.env.FIREBASE_TOKEN_URI,
-          auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
-          client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
-        };
-        console.log('[Firebase] Initializing with env variables. Project:', serviceAccount.project_id);
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-        });
-      } else {
-        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || path.join(__dirname, '../serviceAccountKey.json');
-        const resolvedPath = path.resolve(serviceAccountPath);
-        console.log('[Firebase] Loading from file:', resolvedPath);
-        const serviceAccount = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-        });
-      }
+      console.warn('[Firebase] Admin app not initialized. Firestore sync disabled.');
+      firestoreUnavailable = true;
+      return null;
     }
 
     firestoreAdminDb = admin.firestore();
-    console.log('[Firebase] Admin initialized successfully');
+    console.log('[Firebase] Firestore initialized successfully');
     return firestoreAdminDb;
   } catch (error) {
-    console.error('[Firebase] Init failed:', error.message);
+    console.error('[Firebase] Firestore init failed:', error.message);
     firestoreUnavailable = true;
     return null;
   }
