@@ -8,7 +8,7 @@ const char* WIFI_SSID = "TECNO CAMON 30S";
 const char* WIFI_PASSWORD = "ayawpagkonek";
 
 // Use your computer LAN IP here, same machine running backend server.
-const char* API_URL = "https://firealertsystem-dcxc.onrender.com/hardware/telemetry";
+const char* API_URL = "https://firealertsystem-pzjt.onrender.com/hardware/telemetry";
 const char* DEVICE_KEY = "dev-device-key";
 
 // -------- Pin wiring (edit to your build) --------
@@ -21,8 +21,10 @@ const int DHT_PIN = 4;
 DHT dht(DHT_PIN, DHT_TYPE);
 
 // Fire detection thresholds
-const int SMOKE_CRITICAL_RAW = 1600;
-const float HEAT_CRITICAL_C = 55.0;
+const int SMOKE_WARNING_RAW = 900;
+const int SMOKE_CRITICAL_RAW = 1200;
+const float HEAT_WARNING_C = 38.0;
+const float HEAT_CRITICAL_C = 45.0;
 
 // Timings
 const unsigned long ALERT_CONFIRM_MS = 3000;
@@ -169,7 +171,7 @@ void loop() {
   int smokeLevel = 0;
   if (smokeRaw >= SMOKE_CRITICAL_RAW) {
     smokeLevel = 2;
-  } else if (smokeRaw >= (SMOKE_CRITICAL_RAW * 0.75)) {
+  } else if (smokeRaw >= SMOKE_WARNING_RAW) {
     smokeLevel = 1;
   }
 
@@ -177,7 +179,7 @@ void loop() {
   if (!isnan(temperature)) {
     if (temperature >= HEAT_CRITICAL_C) {
       heatLevel = 2;
-    } else if (temperature >= 38.0) {
+    } else if (temperature >= HEAT_WARNING_C) {
       heatLevel = 1;
     }
   }
