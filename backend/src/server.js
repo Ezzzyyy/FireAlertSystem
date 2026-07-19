@@ -5,8 +5,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
-const nodemailer = require('nodemailer');
-const { google } = require('googleapis');
+const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 
 console.log('[Server] Starting... Checking Firebase env vars');
 console.log('[Server] FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING');
@@ -18,55 +17,18 @@ const PORT = process.env.PORT || 4000;
 const DEVICE_API_KEY = process.env.DEVICE_API_KEY || 'dev-device-key';
 const ENABLE_FIRESTORE_SYNC = process.env.ENABLE_FIRESTORE_SYNC === 'true';
 
-// Gmail OAuth configuration
-const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID;
-const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
-const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'queenhezekiah04@gmail.com';
+// MailerSend configuration
+const MAILERSEND_API_KEY = process.env.MAILERSEND_API_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM || 'MS_Ow1o4v@trial-z86org8on7wgew13.mlsender.net';
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'Fire Alert System';
 
-let emailTransporter = null;
-
-const initializeEmailTransporter = () => {
-  if (emailTransporter) {
-    return emailTransporter;
-  }
-
-  if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
-    console.warn('[Email] Gmail OAuth not configured. OTP will be logged to console only.');
-    return null;
-  }
-
-  try {
-    const OAuth2 = google.auth.OAuth2;
-    const oauth2Client = new OAuth2(
-      GMAIL_CLIENT_ID,
-      GMAIL_CLIENT_SECRET,
-      'https://developers.google.com/oauthplayground'
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: GMAIL_REFRESH_TOKEN
-    });
-
-    emailTransporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        type: 'OAuth2',
-        user: EMAIL_FROM,
-        clientId: GMAIL_CLIENT_ID,
-        clientSecret: GMAIL_CLIENT_SECRET,
-        refreshToken: GMAIL_REFRESH_TOKEN,
-        accessToken: oauth2Client.getAccessToken()
-      }
-    });
-    
-    console.log('[Email] Gmail OAuth transporter initialized successfully');
-    return emailTransporter;
-  } catch (error) {
-    console.warn('[Email] Failed to initialize Gmail OAuth:', error.message);
-    return null;
-  }
-};
+let mailerSend = null;
+if (MAILERSEND_API_KEY) {
+  mailerSend = new MailerSend({ apiKey: MAILERSEND_API_KEY });
+  console.log('[Email] MailerSend initialized successfully');
+} else {
+  console.warn('[Email] MailerSend API key not configured. OTP will be logged to console only.');
+}
 
 const validateEmailWithAPI = async (email) => {
   // List of common disposable email domains
@@ -814,17 +776,19 @@ app.post('/auth/send-otp', async (req, res) => {
     expiresAt: Date.now() + 5 * 60 * 1000,
   });
 
-  // Try to send email with Gmail OAuth
+  // Send email with MailerSend (HTTP API - no SMTP blocking)
   let emailSent = false;
-  const transporter = initializeEmailTransporter();
   
-  if (transporter) {
+  if (mailerSend) {
     try {
-      await transporter.sendMail({
-        from: EMAIL_FROM,
-        to: email,
-        subject: 'Fire Alert System - OTP Verification',
-        html: `
+      const sentFrom = new Sender(EMAIL_FROM, EMAIL_FROM_NAME);
+      const recipients = [new Recipient(email, email)];
+      
+      const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipients)
+        .setSubject('Fire Alert System - OTP Verification')
+        .setHtml(`
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #ff6b6b;">Fire Alert System</h2>
             <p>Your verification code is:</p>
@@ -834,17 +798,21 @@ app.post('/auth/send-otp', async (req, res) => {
             <p>This code will expire in 5 minutes.</p>
             <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
           </div>
-        `,
-      });
-      console.log(`[Gmail] OTP email sent to ${email}`);
+        `);
+      
+      await mailerSend.email.send(emailParams);
+      console.log(`[MailerSend] OTP email sent successfully to ${email}`);
       emailSent = true;
     } catch (error) {
-      console.error('[Gmail] Failed to send email:', error.message);
+      console.error('[MailerSend] Failed to send email:', error.message);
+      if (error.body) {
+        console.error('[MailerSend] Error details:', error.body);
+      }
       emailSent = false;
     }
   }
   
-  // Log to console for development/debugging
+  // Log to console only if email failed
   if (!emailSent) {
     console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
   }
@@ -852,7 +820,6 @@ app.post('/auth/send-otp', async (req, res) => {
   return res.json({ 
     success: true, 
     message: emailSent ? 'OTP sent to your email' : 'OTP generated (check server logs)',
-    // Include OTP in response only if email failed (for development)
     otp: emailSent ? undefined : otp 
   });
 });
