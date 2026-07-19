@@ -5,7 +5,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 console.log('[Server] Starting... Checking Firebase env vars');
 console.log('[Server] FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING');
@@ -18,44 +18,15 @@ const DEVICE_API_KEY = process.env.DEVICE_API_KEY || 'dev-device-key';
 const ENABLE_FIRESTORE_SYNC = process.env.ENABLE_FIRESTORE_SYNC === 'true';
 
 // Email configuration
-const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
-const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || '465', 10);
-const EMAIL_USER = process.env.EMAIL_USER;
-const EMAIL_PASS = process.env.EMAIL_PASS;
-const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@firealert.com';
 
-let emailTransporter = null;
-
-const initializeEmailTransporter = () => {
-  if (emailTransporter) {
-    return emailTransporter;
-  }
-
-  if (!EMAIL_USER || !EMAIL_PASS) {
-    console.warn('Email credentials not configured. OTP will be logged to console only.');
-    return null;
-  }
-
-  try {
-    emailTransporter = nodemailer.createTransport({
-      host: EMAIL_HOST,
-      port: EMAIL_PORT,
-      secure: true, // Use SSL for port 465
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-    console.log('Email transporter initialized successfully');
-    return emailTransporter;
-  } catch (error) {
-    console.warn('Failed to initialize email transporter:', error.message);
-    return null;
-  }
-};
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log('[Email] SendGrid initialized successfully');
+} else {
+  console.warn('[Email] SendGrid API key not configured. OTP will be logged to console only.');
+}
 
 const validateEmailWithAPI = async (email) => {
   // List of common disposable email domains
@@ -803,48 +774,50 @@ app.post('/auth/send-otp', async (req, res) => {
     expiresAt: Date.now() + 5 * 60 * 1000,
   });
 
-  // Try to send email (with timeout to prevent long waits)
-  const transporter = initializeEmailTransporter();
+  // Try to send email with SendGrid
   let emailSent = false;
   
-  if (transporter) {
+  if (SENDGRID_API_KEY) {
     try {
-      // Set a 5-second timeout for email sending
-      await Promise.race([
-        transporter.sendMail({
-          from: EMAIL_FROM,
-          to: email,
-          subject: 'Fire Alert System - OTP Verification',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #ff6b6b;">Fire Alert System</h2>
-              <p>Your verification code is:</p>
-              <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-                ${otp}
-              </div>
-              <p>This code will expire in 5 minutes.</p>
-              <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
+      const msg = {
+        to: email,
+        from: EMAIL_FROM,
+        subject: 'Fire Alert System - OTP Verification',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #ff6b6b;">Fire Alert System</h2>
+            <p>Your verification code is:</p>
+            <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+              ${otp}
             </div>
-          `,
-        }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Email timeout')), 5000))
-      ]);
-      console.log(`OTP email sent to ${email}`);
+            <p>This code will expire in 5 minutes.</p>
+            <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
+          </div>
+        `,
+      };
+      
+      await sgMail.send(msg);
+      console.log(`[SendGrid] OTP email sent to ${email}`);
       emailSent = true;
     } catch (error) {
-      console.warn('Failed to send email (will use development mode):', error.message);
+      console.error('[SendGrid] Failed to send email:', error.message);
+      if (error.response) {
+        console.error('[SendGrid] Error details:', error.response.body);
+      }
       emailSent = false;
     }
   }
   
-  // Always log to console for development
-  console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
+  // Log to console for development/debugging
+  if (!emailSent) {
+    console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
+  }
   
   return res.json({ 
     success: true, 
-    message: emailSent ? 'OTP sent to your email' : 'OTP generated (check console in development)',
-    // Include OTP in response for development (remove in production)
-    otp: otp 
+    message: emailSent ? 'OTP sent to your email' : 'OTP generated (check server logs)',
+    // Include OTP in response only if email failed (for development)
+    otp: emailSent ? undefined : otp 
   });
 });
 
