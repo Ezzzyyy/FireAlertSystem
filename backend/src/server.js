@@ -827,11 +827,12 @@ app.post('/auth/send-otp', async (req, res) => {
       });
     } catch (error) {
       console.error('Failed to send email:', error.message);
+      console.error('Full error:', error);
       // If email sending fails, the email is likely invalid
       otpStore.delete(email);
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid email address. Please use a real email address.' 
+        message: 'Failed to send OTP email. Please check your email address or try again later.' 
       });
     }
   } else {
