@@ -987,6 +987,26 @@ app.use((error, _req, res, next) => {
   return res.status(500).json({ message: 'Internal server error.' });
 });
 
+// Admin endpoint to view all registered users
+app.get('/admin/users', (req, res) => {
+  const apiKey = req.headers['x-admin-key'];
+  if (apiKey !== DEVICE_API_KEY) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  
+  const allUsers = Object.values(users).map(u => ({
+    id: u.id,
+    email: u.email,
+    name: u.name,
+  }));
+  
+  return res.json({ 
+    success: true, 
+    count: allUsers.length,
+    users: allUsers 
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Auth API running on http://localhost:${PORT}`);
 });
