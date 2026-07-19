@@ -231,7 +231,14 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchSensorData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/hardware/latest`);
+        // Add timestamp to prevent caching
+        const timestamp = Date.now();
+        const response = await fetch(`${API_BASE_URL}/hardware/latest?t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        });
         const data = await response.json();
         if (data.success && data.telemetry) {
           const { fire, smoke, heat, receivedAt } = data.telemetry;
@@ -280,8 +287,8 @@ export default function Dashboard() {
     // Fetch immediately
     fetchSensorData();
 
-    // Poll every 3 seconds
-    const interval = setInterval(fetchSensorData, 3000);
+    // Poll every 1 second for real-time updates
+    const interval = setInterval(fetchSensorData, 1000);
 
     return () => clearInterval(interval);
   }, []);
