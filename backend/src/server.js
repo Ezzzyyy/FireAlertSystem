@@ -19,7 +19,7 @@ const ENABLE_FIRESTORE_SYNC = process.env.ENABLE_FIRESTORE_SYNC === 'true';
 
 // Email configuration
 const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
-const EMAIL_PORT = process.env.EMAIL_PORT || 587;
+const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || '465', 10);
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
@@ -40,11 +40,14 @@ const initializeEmailTransporter = () => {
     emailTransporter = nodemailer.createTransport({
       host: EMAIL_HOST,
       port: EMAIL_PORT,
-      secure: EMAIL_PORT === 465,
+      secure: true, // Use SSL for port 465
       auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASS,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
     console.log('Email transporter initialized successfully');
     return emailTransporter;
