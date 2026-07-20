@@ -58,8 +58,9 @@ void connectWiFi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
+  // Non-blocking: just start connection, loop() will retry via lastWifiAttemptAt
   unsigned long startedAt = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startedAt < WIFI_RETRY_MS) {
+  while (WiFi.status() != WL_CONNECTED && millis() - startedAt < 5000) {
     delay(250);
     Serial.print('.');
   }
@@ -69,7 +70,7 @@ void connectWiFi() {
     Serial.print("WiFi connected. IP: ");
     Serial.println(WiFi.localIP());
   } else {
-    Serial.println("WiFi connection timed out. Will retry in loop.");
+    Serial.println("WiFi not connected yet. Sensors still active.");
   }
 }
 

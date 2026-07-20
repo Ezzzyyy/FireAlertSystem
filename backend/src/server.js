@@ -921,9 +921,15 @@ app.put('/state', requireAuth, (req, res) => {
 
   const store = readStateStore();
   const existingState = store[req.userEmail] || getDefaultDashboardState();
+
+  // Never let frontend overwrite live sensor data from hardware
+  const { sensors: _ignoredSensors, ...safeIncomingState } = incomingState;
+
   store[req.userEmail] = {
     ...existingState,
-    ...incomingState,
+    ...safeIncomingState,
+    // Always keep latest hardware sensor data
+    sensors: existingState.sensors,
     updatedAt: new Date().toISOString(),
   };
   writeStateStore(store);
@@ -968,10 +974,12 @@ app.post('/hardware/telemetry', async (req, res) => {
   if (shouldAlert && now - lastAlertSentAt >= ALERT_COOLDOWN_MS) {
     const alertSensor = flameDetected ? fireSensor : smokeSensor;
 
-    // Get location from any registered user's state
+    // Get location - use each registered user's own location
     const store = readStateStore();
-    const firstUserEmail = Object.keys(store)[0];
-    const location = firstUserEmail ? (store[firstUserEmail]?.systemLocation || 'Unknown Location') : 'Unknown Location';
+    const emails = Object.keys(store);
+    const location = emails.length > 0
+      ? (store[emails[0]]?.systemLocation || 'Unknown Location')
+      : 'Unknown Location';
 
     console.log(`[Alert] TRIGGERING push notification! Sensor: ${alertSensor?.name}, Location: ${location}`);
     await sendFireAlertNotification(alertSensor, location);
@@ -1007,6 +1015,9 @@ app.post('/hardware/telemetry', async (req, res) => {
 
 app.get('/hardware/latest', (_req, res) => {
   const telemetry = latestHardwareTelemetry;
+
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('Pragma', 'no-cache');
 
   return res.json({
     success: true,
