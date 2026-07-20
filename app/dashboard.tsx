@@ -243,7 +243,11 @@ export default function Dashboard() {
         if (data.success && data.telemetry) {
           const { fire, smoke, heat, receivedAt } = data.telemetry;
           const parsedReceivedAt = typeof receivedAt === 'string' ? Date.parse(receivedAt) : NaN;
-          latestTelemetryAtRef.current = Number.isFinite(parsedReceivedAt) ? parsedReceivedAt : Date.now();
+          const telemetryTime = Number.isFinite(parsedReceivedAt) ? parsedReceivedAt : Date.now();
+          latestTelemetryAtRef.current = telemetryTime;
+
+          // Store the actual hardware trigger time for use in alert logging
+          latestTelemetryTimeRef.current = new Date(telemetryTime);
 
           // Always update sensors to show live data
           setSensors([
@@ -310,6 +314,10 @@ export default function Dashboard() {
   const isStateLoadedRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const alertManuallyStoppedRef = useRef(false);
+  // Stores the actual hardware trigger time (from telemetry receivedAt)
+  const latestTelemetryTimeRef = useRef<Date>(new Date());
+  // Tracks the last alert key that was processed so re-opens correctly re-trigger
+  const lastAlertKeyRef = useRef<string>('');
 
   const startAlarmSound = async () => {
     if (alarmSoundRef.current) {
@@ -496,7 +504,10 @@ export default function Dashboard() {
 
     const alertLevel = getAlertLevel(sensors);
     const criticalSensors = sensors.filter(sensor => sensor.status === 'critical');
-    const alertKey = `critical-${criticalSensors.map(s => s.kind).sort().join('-')}`;
+    // Use a time-bucketed key (1-minute buckets) so repeated polls don't re-trigger,
+    // but a new alarm event (different minute) always logs a new entry
+    const triggerMinute = Math.floor(latestTelemetryAtRef.current / 60000);
+    const alertKey = `critical-${criticalSensors.map(s => s.kind).sort().join('-')}-${triggerMinute}`;
     
     console.log('[Critical Alert] Alert level:', alertLevel);
     console.log('[Critical Alert] Alert key:', alertKey);
@@ -510,10 +521,11 @@ export default function Dashboard() {
 
       console.log('[Critical Alert] Adding activity - Critical sensors:', criticalSensors);
 
-      // Trigger alarm
-      // Only set last alert time when alarm first starts (not for subsequent sensor triggers in same session)
-      const now = new Date();
-      const alertTimestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+      // Use the ACTUAL hardware trigger time, not the time the app was opened
+      const triggerTime = latestTelemetryTimeRef.current;
+      const alertTimestamp = triggerTime.toLocaleDateString() + ' ' + triggerTime.toLocaleTimeString();
+      const date = triggerTime.toLocaleDateString();
+
       if (!isAlertActive) {
         setLastAlertTime(alertTimestamp);
       }
@@ -538,8 +550,6 @@ export default function Dashboard() {
         level: `${sensor.value}${sensor.unit}`,
         status: sensor.status,
       }));
-
-      const date = new Date().toLocaleDateString();
 
       setPushSent(prev => prev + 1);
       setActivities(prev => ([
