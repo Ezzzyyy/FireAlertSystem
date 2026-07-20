@@ -31,7 +31,7 @@ const unsigned long ALERT_CONFIRM_MS = 3000;
 const unsigned long ALERT_BLINK_MS = 150;
 const unsigned long SENSOR_LOOP_DELAY_MS = 100;
 const unsigned long LOG_INTERVAL_MS = 1000;
-const unsigned long TELEMETRY_INTERVAL_MS = 2000;
+const unsigned long TELEMETRY_INTERVAL_MS = 1000; // Send every 1 second for faster dashboard updates
 const unsigned long WIFI_RETRY_MS = 10000;
 
 // Variables

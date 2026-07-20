@@ -287,8 +287,8 @@ export default function Dashboard() {
     // Fetch immediately
     fetchSensorData();
 
-    // Poll every 1 second for real-time updates
-    const interval = setInterval(fetchSensorData, 1000);
+    // Poll every 500ms for near real-time updates
+    const interval = setInterval(fetchSensorData, 500);
 
     return () => clearInterval(interval);
   }, []);
