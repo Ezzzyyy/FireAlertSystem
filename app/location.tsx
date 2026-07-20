@@ -498,9 +498,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#232346',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     overflow: 'hidden',
     height: 56,
+    justifyContent: 'center',
   },
   pickerDisabled: {
     opacity: 0.5,
@@ -511,6 +512,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     width: '100%',
     height: 56,
+    marginTop: -4,
+    marginBottom: -4,
   },
   saveButton: {
     backgroundColor: '#4ecdc4',

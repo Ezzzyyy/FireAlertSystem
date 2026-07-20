@@ -99,7 +99,9 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   },
   setSystemLocation: (location) => {
     set({ systemLocation: location });
-    storage.setItem(getSystemStorageKey(get().userId), JSON.stringify(get()));
+    // Save AFTER set() so we capture the new value
+    const updatedState = { ...get(), systemLocation: location };
+    storage.setItem(getSystemStorageKey(get().userId), JSON.stringify(updatedState));
   },
   setSensors: (sensors) => {
     set({ sensors });
