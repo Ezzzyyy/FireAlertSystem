@@ -946,7 +946,39 @@ app.post('/hardware/telemetry', async (req, res) => {
 
   latestHardwareTelemetry = telemetry;
 
-  // Update current persisted users so newly opened dashboards get fresh sensor values.
+  // Apply telemetry to sensors using default state (for alert checking)
+  const defaultSensors = getDefaultDashboardState().sensors;
+  const nextSensorsDefault = applyTelemetryToSensors(defaultSensors, telemetry);
+
+  // Check for critical fire and send FCM notification (with cooldown to prevent spam)
+  const now = Date.now();
+  const fireSensor = nextSensorsDefault.find(s => s.kind === 'fire');
+  const smokeSensor = nextSensorsDefault.find(s => s.kind === 'smoke');
+  const heatSensor = nextSensorsDefault.find(s => s.kind === 'heat');
+
+  const flameDetected = fireSensor && fireSensor.value >= 85;
+  const smokeCritical = smokeSensor && smokeSensor.value >= SENSOR_THRESHOLDS.smoke.critical;
+  const heatCritical = heatSensor && heatSensor.value >= SENSOR_THRESHOLDS.temperature.critical;
+
+  const shouldAlert = flameDetected || (smokeCritical && heatCritical);
+
+  console.log(`[Alert Check] flame=${flameDetected}, smoke=${smokeSensor?.value}, heat=${heatSensor?.value}, shouldAlert=${shouldAlert}`);
+  console.log(`[Alert Check] FCM tokens registered: ${getAllFcmTokens().length}`);
+
+  if (shouldAlert && now - lastAlertSentAt >= ALERT_COOLDOWN_MS) {
+    const alertSensor = flameDetected ? fireSensor : smokeSensor;
+
+    // Get location from any registered user's state
+    const store = readStateStore();
+    const firstUserEmail = Object.keys(store)[0];
+    const location = firstUserEmail ? (store[firstUserEmail]?.systemLocation || 'Unknown Location') : 'Unknown Location';
+
+    console.log(`[Alert] TRIGGERING push notification! Sensor: ${alertSensor?.name}, Location: ${location}`);
+    await sendFireAlertNotification(alertSensor, location);
+    lastAlertSentAt = now;
+  }
+
+  // Update persisted state for all registered users
   const store = readStateStore();
   const emails = Object.keys(store);
   let lastSensorsSnapshot = null;
@@ -959,35 +991,12 @@ app.post('/hardware/telemetry', async (req, res) => {
       updatedAt: telemetry.receivedAt,
     };
     lastSensorsSnapshot = nextSensors;
-
-    // Check for critical fire and send FCM notification (with cooldown to prevent spam)
-    // Matches Arduino logic: flame detected OR (smoke >= 1200 AND heat >= 45)
-    const now = Date.now();
-    const fireSensor = nextSensors.find(s => s.kind === 'fire');
-    const smokeSensor = nextSensors.find(s => s.kind === 'smoke');
-    const heatSensor = nextSensors.find(s => s.kind === 'heat');
-
-    const flameDetected = fireSensor && fireSensor.value >= 85; // flame sensor critical
-    const smokeCritical = smokeSensor && smokeSensor.value >= SENSOR_THRESHOLDS.smoke.critical;   // >= 1200
-    const heatCritical = heatSensor && heatSensor.value >= SENSOR_THRESHOLDS.temperature.critical; // >= 45
-
-    const shouldAlert = flameDetected || (smokeCritical && heatCritical);
-
-    if (shouldAlert) {
-      if (now - lastAlertSentAt >= ALERT_COOLDOWN_MS) {
-        const alertSensor = flameDetected ? fireSensor : smokeSensor;
-        console.log(`[Alert] Sending notification for ${email} with location: ${current.systemLocation}`);
-        console.log(`[Alert] Trigger: flame=${flameDetected}, smoke=${smokeSensor?.value}, heat=${heatSensor?.value}`);
-        await sendFireAlertNotification(alertSensor, current.systemLocation);
-        lastAlertSentAt = now;
-      }
-    }
   }
   writeStateStore(store);
 
   await syncTelemetryToFirestore(
     telemetry,
-    lastSensorsSnapshot || applyTelemetryToSensors(getDefaultDashboardState().sensors, telemetry)
+    lastSensorsSnapshot || nextSensorsDefault
   );
 
   return res.json({
