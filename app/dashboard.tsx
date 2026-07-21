@@ -159,7 +159,7 @@ export default function Dashboard() {
   const latestTelemetryAtRef = useRef<number>(0);
 
   const isTelemetryFresh = () => {
-    if (!latestTelemetryAtRef.current) {
+    if (latestTelemetryAtRef.current === 0) {
       return false;
     }
     return Date.now() - latestTelemetryAtRef.current <= TELEMETRY_STALE_MS;
