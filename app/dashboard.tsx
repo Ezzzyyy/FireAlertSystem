@@ -156,7 +156,7 @@ export default function Dashboard() {
     { id: 1, kind: 'smoke', name: 'Smoke Sensor', value: 1, unit: 'raw', status: getSensorStatus('smoke', 1), module: 'MQ-2/MQ-135' },
     { id: 3, kind: 'heat', name: 'Heat Sensor', value: 22.5, unit: '°C', status: getSensorStatus('heat', 22.5), module: 'DHT22' },
   ]);
-  const latestTelemetryAtRef = useRef<number | null>(null);
+  const latestTelemetryAtRef = useRef<number>(0);
 
   const isTelemetryFresh = () => {
     if (!latestTelemetryAtRef.current) {
@@ -199,6 +199,7 @@ export default function Dashboard() {
       }
 
       try {
+        // Try authenticated registration first
         const response = await fetch(`${API_BASE_URL}/fcm/register`, {
           method: 'POST',
           headers: {
@@ -209,7 +210,21 @@ export default function Dashboard() {
         });
 
         if (!response.ok) {
-          console.warn('[Push Register] Failed to register token', response.status);
+          // Fallback: use public endpoint with email (works after Render restarts)
+          console.warn('[Push Register] Auth failed, trying public endpoint...');
+          const currentUser = useAuthStore.getState().user;
+          if (currentUser?.email) {
+            const fallbackResponse = await fetch(`${API_BASE_URL}/fcm/register-public`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fcmToken: expoToken, email: currentUser.email }),
+            });
+            if (fallbackResponse.ok) {
+              console.log('[Push Register] Token registered via public endpoint');
+            } else {
+              console.warn('[Push Register] Public registration also failed', fallbackResponse.status);
+            }
+          }
         } else {
           console.log('[Push Register] Expo push token registered', expoToken);
         }
@@ -262,12 +277,13 @@ export default function Dashboard() {
           const heatStatus = getSensorStatus('heat', heat);
           const allNormal = fireStatus === 'normal' && smokeStatus === 'normal' && heatStatus === 'normal';
 
-          console.log('[Sensor Poll] fireStatus:', fireStatus, 'smokeStatus:', smokeStatus, 'heatStatus:', heatStatus, 'allNormal:', allNormal, 'isAlertActive:', isAlertActive);
+          console.log('[Sensor Poll] fireStatus:', fireStatus, 'smokeStatus:', smokeStatus, 'heatStatus:', heatStatus, 'allNormal:', allNormal, 'isAlertActive:', isAlertActiveRef.current);
 
           // Stop buzzer and clear alert card when all sensors return to normal
           if (allNormal) {
             console.log('[Sensor Poll] All sensors normal, stopping buzzer and clearing alert');
             setIsAlertActive(false);
+            isAlertActiveRef.current = false;
             void stopAlarmSound();
           }
 
@@ -318,6 +334,8 @@ export default function Dashboard() {
   const latestTelemetryTimeRef = useRef<Date>(new Date());
   // Tracks the last alert key that was processed so re-opens correctly re-trigger
   const lastAlertKeyRef = useRef<string>('');
+  // Ref to track isAlertActive inside polling closure (avoids stale state)
+  const isAlertActiveRef = useRef(false);
 
   const startAlarmSound = async () => {
     if (alarmSoundRef.current) {
@@ -482,8 +500,9 @@ export default function Dashboard() {
   const handleStopAlert = () => {
     console.log('[Stop Alert] Stopping alert');
     setIsAlertActive(false);
-    alertManuallyStoppedRef.current = true; // Flag to prevent alarm re-triggering until sensors return to normal
-    processedSensorsRef.current.clear(); // Clear to allow re-triggering after sensors return to normal
+    isAlertActiveRef.current = false;
+    alertManuallyStoppedRef.current = true;
+    processedSensorsRef.current.clear();
     void stopAlarmSound();
     console.log('[Stop Alert] Alert stopped, isAlertActive:', false);
   };
@@ -504,9 +523,9 @@ export default function Dashboard() {
 
     const alertLevel = getAlertLevel(sensors);
     const criticalSensors = sensors.filter(sensor => sensor.status === 'critical');
-    // Use a time-bucketed key (1-minute buckets) so repeated polls don't re-trigger,
-    // but a new alarm event (different minute) always logs a new entry
-    const triggerMinute = Math.floor(latestTelemetryAtRef.current / 60000);
+    // Use a time-bucketed key (1-minute wall-clock buckets) so repeated polls
+    // don't re-trigger, but a new alarm event (different minute) always logs a new entry
+    const triggerMinute = Math.floor(Date.now() / 60000);
     const alertKey = `critical-${criticalSensors.map(s => s.kind).sort().join('-')}-${triggerMinute}`;
     
     console.log('[Critical Alert] Alert level:', alertLevel);
@@ -530,6 +549,7 @@ export default function Dashboard() {
         setLastAlertTime(alertTimestamp);
       }
       setIsAlertActive(true);
+      isAlertActiveRef.current = true;
 
       void startAlarmSound();
 
@@ -574,6 +594,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (isAlertActive) {
+      isAlertActiveRef.current = true;
       Animated.loop(
         Animated.sequence([
           Animated.timing(glowAnim, { toValue: 1, duration: 600, useNativeDriver: false }),
@@ -581,6 +602,7 @@ export default function Dashboard() {
         ])
       ).start();
     } else {
+      isAlertActiveRef.current = false;
       glowAnim.setValue(0);
     }
   }, [isAlertActive]);

@@ -715,6 +715,24 @@ app.post('/fcm/register', requireAuth, (req, res) => {
   return res.json({ success: true });
 });
 
+// Public FCM register — allows token registration even after Render restarts wipe sessions
+// Token is tied to email, email is passed in body
+app.post('/fcm/register-public', async (req, res) => {
+  const { fcmToken, email } = req.body || {};
+  if (!fcmToken || !email) {
+    return res.status(400).json({ message: 'FCM token and email are required.' });
+  }
+  // Verify email exists in Firebase
+  try {
+    await admin.auth().getUserByEmail(email);
+  } catch {
+    return res.status(401).json({ message: 'Invalid email.' });
+  }
+  addFcmTokenForUser(email, fcmToken);
+  console.log(`[FCM Public] Token registered for ${email}: ${fcmToken}`);
+  return res.json({ success: true });
+});
+
 // Test endpoint to manually trigger a push notification
 app.post('/fcm/test', requireAuth, async (req, res) => {
   const allTokens = getAllFcmTokens();
