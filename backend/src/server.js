@@ -5,6 +5,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
+const axios = require('axios');
 const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 
 console.log('[Server] Starting... Checking Firebase env vars');
@@ -335,6 +336,30 @@ const getCombinedFireStatus = (sensors) => {
   return 'normal';
 };
 
+const getCombinedFireStatusFromValues = (fireValue, smokeValue, heatValue) => {
+  if (fireValue == null || smokeValue == null || heatValue == null) {
+    return 'normal';
+  }
+
+  const fireValid = validateFireSensor(2, fireValue);
+  const smokeAverage = getMovingAverage(1, smokeValue);
+  const fireFlickering = detectFireFlicker(2, fireValue);
+
+  if (fireValid && smokeAverage >= SENSOR_THRESHOLDS.smoke.critical) {
+    return 'critical';
+  }
+
+  if (smokeAverage >= SENSOR_THRESHOLDS.smoke.critical && heatValue >= SENSOR_THRESHOLDS.temperature.warning) {
+    return 'warning';
+  }
+
+  if (fireValid && fireFlickering) {
+    return 'verify';
+  }
+
+  return 'normal';
+};
+
 const getSensorStatus = (kind, value) => {
   const threshold = SENSOR_THRESHOLDS[kind];
   if (!threshold) {
@@ -388,7 +413,7 @@ const normalizeHardwareTelemetry = (payload) => {
   };
 };
 
-const applyTelemetryToSensors = (existingSensors, telemetry) => {
+const applyTelemetryToSensors = (existingSensors, telemetry, combinedStatus = null) => {
   if (!Array.isArray(existingSensors)) {
     return existingSensors;
   }
@@ -423,15 +448,15 @@ const applyTelemetryToSensors = (existingSensors, telemetry) => {
     return sensor;
   });
 
-  // Apply combined fire detection logic
-  const combinedStatus = getCombinedFireStatus(updatedSensors);
+  // Apply combined fire detection logic.
+  const nextCombinedStatus = combinedStatus || 'normal';
   
   // Update fire sensor status based on combined logic
   return updatedSensors.map((sensor) => {
-    if (sensor.kind === 'fire' && combinedStatus !== 'normal') {
+    if (sensor.kind === 'fire' && nextCombinedStatus !== 'normal') {
       return {
         ...sensor,
-        status: combinedStatus,
+        status: nextCombinedStatus,
       };
     }
     return sensor;
@@ -580,6 +605,13 @@ app.post('/auth/register', async (req, res) => {
 
     console.log('[Backend Register] Firebase user created:', userRecord.uid);
 
+    users[email] = {
+      id: userRecord.uid,
+      email: userRecord.email,
+      name,
+    };
+    writeUsersStore(users);
+
     // Initialize user state with default values
     const store = readStateStore();
     if (!store[email]) {
@@ -622,6 +654,25 @@ app.post('/auth/login', async (req, res) => {
   }
 
   try {
+    const apiKey = process.env.FIREBASE_WEB_API_KEY || 'AIzaSyAa43FeNlI9QZo7chKhXXAi4nR2-Cvz0A4';
+
+    try {
+      const response = await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`, {
+        email,
+        password,
+        returnSecureToken: true,
+      });
+    } catch (error) {
+      const message = error.response?.data?.error?.message || 'Invalid credentials.';
+      if (message === 'EMAIL_NOT_FOUND') {
+        return res.status(404).json({ message: 'Email not found.' });
+      }
+      if (message === 'INVALID_PASSWORD') {
+        return res.status(401).json({ message: 'Invalid password.' });
+      }
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
+
     // Get user from Firebase Authentication
     const userRecord = await admin.auth().getUserByEmail(email);
     console.log('[Backend Login] Firebase user found:', userRecord.uid);
@@ -805,6 +856,24 @@ const sendFireAlertNotification = async (sensorData, location) => {
   }
 };
 
+const getAlertLocationLabel = (store) => {
+  const locations = [...new Set(
+    Object.values(store)
+      .map((entry) => (typeof entry?.systemLocation === 'string' ? entry.systemLocation.trim() : ''))
+      .filter(Boolean)
+  )];
+
+  if (locations.length === 1) {
+    return locations[0];
+  }
+
+  if (locations.length > 1) {
+    return 'Multiple monitored locations';
+  }
+
+  return 'Unknown Location';
+};
+
 app.post('/auth/send-otp', async (req, res) => {
   const { email } = req.body || {};
 
@@ -970,9 +1039,11 @@ app.post('/hardware/telemetry', async (req, res) => {
 
   latestHardwareTelemetry = telemetry;
 
+  const combinedStatus = getCombinedFireStatusFromValues(telemetry.fire, telemetry.smoke, telemetry.heat);
+
   // Apply telemetry to sensors using default state (for alert checking)
   const defaultSensors = getDefaultDashboardState().sensors;
-  const nextSensorsDefault = applyTelemetryToSensors(defaultSensors, telemetry);
+  const nextSensorsDefault = applyTelemetryToSensors(defaultSensors, telemetry, combinedStatus);
 
   // Check for critical fire and send FCM notification (with cooldown to prevent spam)
   const now = Date.now();
@@ -992,12 +1063,9 @@ app.post('/hardware/telemetry', async (req, res) => {
   if (shouldAlert && now - lastAlertSentAt >= ALERT_COOLDOWN_MS) {
     const alertSensor = flameDetected ? fireSensor : smokeSensor;
 
-    // Get location - use each registered user's own location
+    // Use a neutral location label if users monitor different locations.
     const store = readStateStore();
-    const emails = Object.keys(store);
-    const location = emails.length > 0
-      ? (store[emails[0]]?.systemLocation || 'Unknown Location')
-      : 'Unknown Location';
+    const location = getAlertLocationLabel(store);
 
     console.log(`[Alert] TRIGGERING push notification! Sensor: ${alertSensor?.name}, Location: ${location}`);
     await sendFireAlertNotification(alertSensor, location);
@@ -1010,7 +1078,7 @@ app.post('/hardware/telemetry', async (req, res) => {
   let lastSensorsSnapshot = null;
   for (const email of emails) {
     const current = store[email] || getDefaultDashboardState();
-    const nextSensors = applyTelemetryToSensors(current.sensors, telemetry);
+    const nextSensors = applyTelemetryToSensors(current.sensors, telemetry, combinedStatus);
     store[email] = {
       ...current,
       sensors: nextSensors,
