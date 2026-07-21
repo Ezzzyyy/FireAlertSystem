@@ -802,58 +802,82 @@ const sendFireAlertNotification = async (sensorData, location) => {
   const allTokens = getAllFcmTokens();
   console.log(`[Push] Attempting to send alert. Total tokens: ${allTokens.length}`);
   console.log(`[Push] Location being sent: "${location}"`);
-  
+
   if (allTokens.length === 0) {
     const now = Date.now();
     if (now - lastNoTokenLogAt >= 60000) {
-      console.log('No FCM tokens registered');
+      console.log('[Push] No FCM tokens registered');
       lastNoTokenLogAt = now;
     }
     return;
   }
 
-  const messages = [];
-  for (const token of allTokens) {
-    messages.push({
-      to: token,
-      sound: 'default',
-      title: '🚨 FIRE ALERT - EVACUATE NOW',
-      body: `CRITICAL: ${sensorData.name} at ${sensorData.value}${sensorData.unit} — Location: ${location || 'Unknown'}`,
-      data: {
-        type: 'fire_alert',
-        sensor: sensorData.name,
-        value: sensorData.value.toString(),
-        unit: sensorData.unit,
-        location: location || 'Unknown',
-        timestamp: new Date().toISOString(),
-      },
-      priority: 'high',
-      channelId: 'fire-alert',
-    });
-  }
+  const title = '🚨 FIRE ALERT - EVACUATE NOW';
+  const body = `CRITICAL: ${sensorData.name} at ${sensorData.value}${sensorData.unit} — Location: ${location || 'Unknown'}`;
+  const data = {
+    type: 'fire_alert',
+    sensor: sensorData.name,
+    value: String(sensorData.value),
+    unit: sensorData.unit,
+    location: location || 'Unknown',
+    timestamp: new Date().toISOString(),
+  };
 
-  try {
-    console.log(`[Push] Sending ${messages.length} messages via Expo API`);
-    const response = await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(messages),
-    });
-    const result = await response.json();
-    console.log('[Push] Expo API response:', JSON.stringify(result));
-    
-    if (result.data) {
-      result.data.forEach((item, idx) => {
-        if (item.status === 'ok') {
-          console.log(`[Push] Message ${idx} sent successfully`);
-        } else {
-          console.error(`[Push] Message ${idx} failed:`, item.message);
+  // Send via Firebase Admin SDK (FCM) directly — works for standalone APKs
+  const sendResults = await Promise.allSettled(
+    allTokens.map((token) =>
+      admin.messaging().send({
+        token,
+        notification: { title, body },
+        data,
+        android: {
+          priority: 'high',
+          notification: {
+            channelId: 'fire-alert',
+            sound: 'default',
+            priority: 'max',
+            vibrateTimingsMillis: [0, 500, 250, 500, 250, 500],
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: 'default',
+              badge: 1,
+              contentAvailable: true,
+            },
+          },
+        },
+      })
+    )
+  );
+
+  sendResults.forEach((result, idx) => {
+    if (result.status === 'fulfilled') {
+      console.log(`[Push] Token ${idx} sent successfully. Message ID: ${result.value}`);
+    } else {
+      console.error(`[Push] Token ${idx} failed:`, result.reason?.message || result.reason);
+      // If token is invalid/expired, remove it
+      const errCode = result.reason?.errorInfo?.code;
+      if (
+        errCode === 'messaging/invalid-registration-token' ||
+        errCode === 'messaging/registration-token-not-registered'
+      ) {
+        const token = allTokens[idx];
+        console.log(`[Push] Removing invalid token: ${token}`);
+        for (const [email, tokenSet] of fcmTokens.entries()) {
+          tokenSet.delete(token);
+          if (tokenSet.size === 0) fcmTokens.delete(email);
         }
-      });
+        // Persist updated tokens
+        const store = {};
+        for (const [e, tokenSet] of fcmTokens.entries()) {
+          store[e] = [...tokenSet];
+        }
+        writeFcmTokensStore(store);
+      }
     }
-  } catch (error) {
-    console.error('[Push] Failed to send via Expo API:', error.message);
-  }
+  });
 };
 
 const getAlertLocationLabel = (store) => {

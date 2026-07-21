@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-// Configure notification handler
+// Configure notification handler — controls how notifications appear when app is FOREGROUNDED
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -19,12 +19,12 @@ if (Platform.OS === 'android') {
     vibrationPattern: [0, 500, 250, 500, 250, 500],
     lightColor: '#FF0000',
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-    bypassDnd: true,   // bypasses Do Not Disturb on Android
+    bypassDnd: true,
   });
 }
 
 // Request notification permissions
-export const requestNotificationPermissions = async () => {
+export const requestNotificationPermissions = async (): Promise<boolean> => {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
 
@@ -34,41 +34,47 @@ export const requestNotificationPermissions = async () => {
   }
 
   if (finalStatus !== 'granted') {
-    console.log('Failed to get push token for push notification!');
+    console.warn('[Push] Notification permission not granted');
     return false;
   }
 
   return true;
 };
 
-// Get Expo push token
-export const getExpoPushToken = async () => {
+/**
+ * Gets the native FCM device token (not an Expo push token).
+ * This token works directly with Firebase Cloud Messaging and
+ * delivers background notifications on standalone APKs.
+ */
+export const getExpoPushToken = async (): Promise<string | null> => {
   const hasPermission = await requestNotificationPermissions();
   if (!hasPermission) {
     return null;
   }
 
-  const token = await Notifications.getExpoPushTokenAsync({
-    projectId: 'c70d2cc3-7ea7-473b-b221-aa16f27bf8ae',
-  });
-
-  return token.data;
+  try {
+    // Use native FCM token — works for standalone APKs without Expo proxy
+    const tokenData = await Notifications.getDevicePushTokenAsync();
+    console.log('[Push] Native FCM token type:', tokenData.type);
+    console.log('[Push] Native FCM token:', tokenData.data);
+    return tokenData.data as string;
+  } catch (error: any) {
+    console.error('[Push] Failed to get device push token:', error.message);
+    return null;
+  }
 };
 
 // Set up notification listeners
 export const setupNotificationListeners = () => {
-  // Handle notifications received while app is in foreground
   const foregroundSubscription = Notifications.addNotificationReceivedListener(
     (notification) => {
-      console.log('Notification received in foreground:', notification);
+      console.log('[Push] Notification received in foreground:', notification);
     }
   );
 
-  // Handle notifications received when app is in background/closed
   const responseSubscription = Notifications.addNotificationResponseReceivedListener(
     (response) => {
-      console.log('Notification response received:', response);
-      // Handle user tapping on notification
+      console.log('[Push] Notification tapped:', response);
     }
   );
 
@@ -76,16 +82,4 @@ export const setupNotificationListeners = () => {
     foregroundSubscription.remove();
     responseSubscription.remove();
   };
-};
-
-// Schedule local notification (for testing)
-export const scheduleTestNotification = async () => {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: '🔥 Test Fire Alert',
-      body: 'This is a test notification from the Fire Alert System',
-      data: { type: 'test' },
-    },
-    trigger: { seconds: 2 },
-  });
 };
