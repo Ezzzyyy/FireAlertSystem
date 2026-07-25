@@ -863,7 +863,7 @@ const sendFireAlertNotification = async (sensorData, location) => {
           priority: 'high',
           notification: {
             channelId: 'fire-alert',
-            sound: 'default',
+            sound: 'alarm',
             priority: 'max',
             vibrateTimingsMillis: [0, 500, 250, 500, 250, 500],
           },

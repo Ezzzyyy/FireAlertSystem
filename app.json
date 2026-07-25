@@ -35,9 +35,11 @@
       [
         "expo-notifications",
         {
-          "color": "#ff9500"
+          "color": "#ff9500",
+          "sounds": ["./assets/alarm.wav"]
         }
-      ]
+      ],
+      "expo-font"
     ],
     "owner": "ira2"
   }

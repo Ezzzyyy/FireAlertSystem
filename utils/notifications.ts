@@ -15,7 +15,7 @@ if (Platform.OS === 'android') {
   Notifications.setNotificationChannelAsync('fire-alert', {
     name: 'Fire Alert',
     importance: Notifications.AndroidImportance.MAX,
-    sound: 'default',
+    sound: 'alarm',                // uses alarm.wav from assets
     vibrationPattern: [0, 500, 250, 500, 250, 500],
     lightColor: '#FF0000',
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
