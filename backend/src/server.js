@@ -168,6 +168,35 @@ app.use(express.json());
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const STATE_FILE = path.join(DATA_DIR, 'user-state.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const ALERTS_FILE = path.join(DATA_DIR, 'alerts.json');
+
+// -------- Alert log helpers --------
+const readAlertsStore = () => {
+  try {
+    if (!fs.existsSync(ALERTS_FILE)) return [];
+    const raw = fs.readFileSync(ALERTS_FILE, 'utf8');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeAlertsStore = (alerts) => {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    // Keep only the latest 100 alerts to avoid unbounded growth
+    const trimmed = alerts.slice(0, 100);
+    fs.writeFileSync(ALERTS_FILE, JSON.stringify(trimmed, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[Alerts] Failed to persist alert log:', e.message);
+  }
+};
+
+const appendAlert = (alertEntry) => {
+  const alerts = readAlertsStore();
+  alerts.unshift(alertEntry); // newest first
+  writeAlertsStore(alerts);
+};
 
 const ensureStateStore = () => {
   if (!fs.existsSync(DATA_DIR)) {
@@ -1003,6 +1032,19 @@ app.post('/auth/verify-otp', (req, res) => {
   return res.json({ success: true, message: 'OTP verified successfully.' });
 });
 
+// -------- Alert log endpoints --------
+// Returns all backend-persisted alerts (works even if phone was off)
+app.get('/alerts', requireAuth, (req, res) => {
+  const alerts = readAlertsStore();
+  return res.json({ alerts });
+});
+
+// Clear all alerts
+app.delete('/alerts', requireAuth, (req, res) => {
+  writeAlertsStore([]);
+  return res.json({ success: true });
+});
+
 app.get('/state', requireAuth, (req, res) => {
   const store = readStateStore();
   const baseState = store[req.userEmail] || getDefaultDashboardState();
@@ -1094,6 +1136,49 @@ app.post('/hardware/telemetry', async (req, res) => {
     console.log(`[Alert] TRIGGERING push notification! Sensor: ${alertSensor?.name}, Location: ${location}`);
     await sendFireAlertNotification(alertSensor, location);
     lastAlertSentAt = now;
+
+    // Persist alert to backend log so app can load history even if phone was off
+    appendAlert({
+      id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+      time: new Date(now).toLocaleString(),
+      date: new Date(now).toLocaleDateString(),
+      timestamp: now,
+      message: 'CRITICAL - LED + Buzzer',
+      type: 'alert',
+      location: location || 'Unknown',
+      sensors: [
+        { name: alertSensor?.name || 'Unknown', level: `${alertSensor?.value}${alertSensor?.unit}`, status: 'critical' }
+      ],
+      allSensors: [
+        { kind: 'fire',  name: 'Fire Sensor',  value: telemetry.fire,  unit: '%',  status: flameDetected ? 'critical' : 'normal' },
+        { kind: 'smoke', name: 'Smoke Sensor', value: telemetry.smoke, unit: 'raw', status: smokeCritical ? 'critical' : 'normal' },
+        { kind: 'heat',  name: 'Heat Sensor',  value: telemetry.heat,  unit: '°C', status: heatCritical  ? 'critical' : 'normal' },
+      ],
+    });
+
+    // Persist alert to backend log so app can load it even if phone was off
+    appendAlert({
+      id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+      time: new Date(now).toLocaleString(),
+      date: new Date(now).toLocaleDateString(),
+      timestamp: now,
+      message: 'CRITICAL - LED + buzzer',
+      type: 'alert',
+      location: location || 'Unknown',
+      sensors: [
+        {
+          name: alertSensor?.name || 'Unknown',
+          level: `${alertSensor?.value}${alertSensor?.unit}`,
+          status: 'critical',
+        },
+      ],
+      telemetry: {
+        fire: telemetry.fire,
+        smoke: telemetry.smoke,
+        heat: telemetry.heat,
+        flameDetected: telemetry.flameDetected,
+      },
+    });
   }
 
   // Update persisted state for all registered users

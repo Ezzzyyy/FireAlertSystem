@@ -93,10 +93,10 @@ const SENSOR_THRESHOLDS: Record<SensorKind, { warning: number; critical: number 
 
 const getSensorStatus = (kind: SensorKind, value: number): SensorStatus => {
   const threshold = SENSOR_THRESHOLDS[kind];
-  if (value > threshold.critical) {
+  if (value >= threshold.critical) {
     return 'critical';
   }
-  if (value > threshold.warning) {
+  if (value >= threshold.warning) {
     return 'warning';
   }
   return 'normal';
@@ -518,6 +518,14 @@ export default function Dashboard() {
     }
 
     if (!isTelemetryFresh()) {
+      if (isAlertActive) {
+        console.log('[Sensor Poll] Telemetry stale, clearing active alert banner');
+        setIsAlertActive(false);
+        isAlertActiveRef.current = false;
+        alertManuallyStoppedRef.current = false;
+        processedSensorsRef.current.clear();
+        void stopAlarmSound();
+      }
       return;
     }
 
@@ -627,34 +635,40 @@ export default function Dashboard() {
       setUserId(user.id);
       void loadPersistedState(user.id);
 
-      // Load dashboard-specific state from AsyncStorage
+      // Load dashboard-specific state from AsyncStorage + backend alert log
       const loadDashboardState = async () => {
         try {
           console.log('[Dashboard Load] Loading state for user:', user.id);
           const savedState = await AsyncStorage.getItem(`dashboard-${user.id}`);
-          console.log('[Dashboard Load] Saved state:', savedState);
 
           if (savedState) {
             const parsed = JSON.parse(savedState);
-            console.log('[Dashboard Load] Parsed state:', parsed);
-            console.log('[Dashboard Load] Activities from AsyncStorage:', parsed.activities?.length);
-
-            if (parsed.systemLocation) {
-              setSystemLocation(parsed.systemLocation);
-              console.log('[Dashboard Load] Restored location:', parsed.systemLocation);
-            }
+            if (parsed.systemLocation) setSystemLocation(parsed.systemLocation);
             if (typeof parsed.pushSent === 'number') setPushSent(parsed.pushSent);
             if (typeof parsed.lastAlertTime === 'string') setLastAlertTime(parsed.lastAlertTime);
-            if (Array.isArray(parsed.activities)) {
-              setActivities(parsed.activities);
-              console.log('[Dashboard Load] Restored activities:', parsed.activities.length);
-            }
-          } else {
           }
         } catch (error) {
-          console.error('[Dashboard Load] Failed to load dashboard state:', error);
-          // Clear corrupted cache so it doesn't crash on next load
+          console.error('[Dashboard Load] Failed to load local state:', error);
           await AsyncStorage.removeItem(`dashboard-${user.id}`);
+        }
+
+        // Always load alert history from backend — works even if phone was off during an alert
+        try {
+          const currentToken = useAuthStore.getState().token;
+          if (currentToken) {
+            const resp = await fetch(`${API_BASE_URL}/alerts`, {
+              headers: { Authorization: `Bearer ${currentToken}` },
+            });
+            if (resp.ok) {
+              const data = await resp.json();
+              if (Array.isArray(data.alerts) && data.alerts.length > 0) {
+                setActivities(data.alerts);
+                console.log('[Dashboard Load] Loaded', data.alerts.length, 'alerts from backend');
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('[Dashboard Load] Could not fetch backend alerts:', err);
         }
       };
 
@@ -861,7 +875,7 @@ export default function Dashboard() {
 
             <ScrollView style={styles.alertHistoryBox} nestedScrollEnabled showsVerticalScrollIndicator={false}>
               {activities.length > 0 ? (
-                activities.slice(0, 1).map((activity) => (
+                activities.map((activity) => (
                   <View key={activity.id} style={styles.alertCard}>
                     {activity.type === 'alert' ? (
                       <View style={[styles.alertTableRow, { gap: responsive.alertTableRowGap }]}>
