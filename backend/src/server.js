@@ -263,7 +263,7 @@ const getDefaultDashboardState = () => ({
 
 const SENSOR_THRESHOLDS = {
   fire: { warning: 65, critical: 85 },
-  smoke: { warning: 900, critical: 1200 },
+  smoke: { warning: 1600, critical: 1800 },
   temperature: { warning: 38, critical: 45 },
 };
 

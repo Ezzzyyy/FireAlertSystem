@@ -87,7 +87,7 @@ interface ActivitySensorItem {
 
 const SENSOR_THRESHOLDS: Record<SensorKind, { warning: number; critical: number }> = {
   fire: { warning: 65, critical: 85 },
-  smoke: { warning: 900, critical: 1200 },
+  smoke: { warning: 1600, critical: 1800 },
   heat: { warning: 38, critical: 45 },
 };
 
